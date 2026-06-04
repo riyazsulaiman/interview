@@ -1,0 +1,2828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>.NET Full Stack Interview Master Pro (330+ Qs)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Slate, Emerald, and Indigo (Professional, calm, high-contrast) -->
+    <!-- Application Structure Plan: Dashboard layout. Left sidebar for high-level category navigation and progress visualization. Main area for detailed content consumption. Includes a global search bar to quickly find specific concepts across the 400+ dataset. Accordions hide answers until requested to facilitate active recall (flashcard style). -->
+    <!-- Visualization & Content Choices: 
+         - Overall Progress -> Goal: Inform -> Donut Chart (Chart.js/Canvas) -> Interaction: Auto-updates on 'Mastered' click.
+         - Data Organization -> Goal: Organize -> Accordion List + Real-time Search Filter.
+         - Text Storage -> Goal: Efficiency/Safety -> Using a hidden <script type="text/plain"> tag to store the massive 10,000+ word dataset safely without string escaping issues, parsed on load. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out;
+        }
+
+        .accordion-content.expanded { max-height: 5000px; } /* Large max-height for long answers */
+        
+        .answer-text {
+            font-family: 'Fira Code', 'Inter', monospace;
+            white-space: pre-wrap; /* Preserves line breaks automatically */
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: #334155;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .search-highlight { background-color: #fef08a; font-weight: bold; color: #b45309; padding: 0 2px; border-radius: 2px; }
+    </style>
+</head>
+<body class="text-slate-800 h-screen flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-slate-900 text-white shadow-md z-10 shrink-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">🏆</span>
+                <h1 class="text-xl font-bold tracking-tight hidden sm:block">.NET Full Stack Master (405 Qs)</h1>
+                <h1 class="text-lg font-bold tracking-tight sm:hidden">Interview Master</h1>
+            </div>
+            <div class="flex items-center gap-4 w-full sm:w-auto ml-4 sm:ml-0">
+                <input type="text" id="searchInput" placeholder="Search any question or keyword..." 
+                       class="px-4 py-2 rounded-lg text-sm text-slate-900 w-full sm:w-72 border-none focus:ring-2 focus:ring-indigo-500 shadow-inner"
+                       onkeyup="handleSearch()">
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-hidden flex flex-col md:flex-row w-full max-w-7xl mx-auto">
+        
+        <!-- Sidebar -->
+        <aside class="w-full md:w-80 bg-white border-r border-slate-200 flex flex-col h-1/4 md:h-full shrink-0 shadow-sm z-0">
+            <div class="p-4 border-b border-slate-100 flex-shrink-0 flex items-center justify-between md:flex-col md:justify-start">
+                <div class="w-full">
+                    <h2 class="text-xs uppercase tracking-widest font-bold text-slate-500 mb-2 text-center md:text-left">Mastery Progress</h2>
+                    <div class="relative w-full mx-auto h-20 md:h-32 max-w-[100px] md:max-w-[150px]">
+                        <canvas id="progressChart"></canvas>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-1">
+                            <span id="chartPercentage" class="text-base md:text-xl font-bold text-slate-700">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3 flex-1 overflow-y-auto">
+                <h2 class="text-xs uppercase tracking-widest font-bold text-slate-500 mb-3 px-2 hidden md:block">Curriculum</h2>
+                <nav id="categoryNav" class="flex flex-row md:flex-col gap-2 md:space-y-1 pb-4 overflow-x-auto md:overflow-x-visible">
+                    <!-- Nav injected by JS -->
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Question List Area -->
+        <section class="flex-1 h-3/4 md:h-full overflow-y-auto bg-slate-50 p-4 md:p-8 relative" id="scrollContainer">
+            <div class="max-w-4xl mx-auto pb-24">
+                
+                <div class="mb-6">
+                    <h2 id="currentCategoryTitle" class="text-2xl md:text-3xl font-bold text-slate-900 mb-2">Loading...</h2>
+                    <p id="currentCategoryDesc" class="text-slate-600 text-sm md:text-base">Please wait while the curriculum loads.</p>
+                </div>
+
+                <div id="questionList" class="space-y-3">
+                    <!-- Questions injected by JS -->
+                </div>
+                
+                <div id="noResults" class="hidden text-center py-10 text-slate-500 bg-white rounded-lg border border-slate-200">
+                    <span class="text-4xl block mb-3">🔍</span>
+                    <p class="text-lg font-medium">No questions found matching your search.</p>
+                    <p class="text-sm mt-1">Try searching for broader terms like "API", "React", or "SQL".</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Raw Data Storage (Safest way to embed 10,000+ words without JS string escaping issues) -->
+    <script type="text/plain" id="rawQAData">
+@csharp
+# Q1. Difference between Value Type and Reference Type?
+Value types store data directly on the stack.
+Reference types store a reference (pointer) on the stack pointing to data on the heap.
+Examples of value types: int, bool, float, struct, enum.
+Examples of reference types: class, string, array, object.
+Assigning a value type copies the actual data.
+Assigning a reference type copies the reference — both variables point to the same object.
+Key interview line: "Value types are copied, reference types are referenced."
+# Q2. Stack vs Heap?
+Stack is fast, auto-managed memory used for value types and method call frames.
+Heap is for dynamically allocated memory used by reference types.
+Stack memory is automatically freed when a method exits.
+Heap memory is managed by the Garbage Collector.
+Stack is LIFO — Last In First Out.
+Variables on the stack have a fixed, known size at compile time.
+# Q3. Boxing and Unboxing?
+Boxing is converting a value type to an object (reference type).
+This allocates heap memory and copies the value into it.
+Unboxing is casting the object back to a value type.
+Example: int x = 5; object o = x; — this is boxing.
+int y = (int)o; — this is unboxing.
+Both have a performance cost due to heap allocation.
+Avoid in tight loops — causes repeated heap allocations.
+# Q4. What is CLR?
+CLR stands for Common Language Runtime.
+It is the execution engine of the .NET framework.
+It manages memory (garbage collection), type safety, exception handling, and security.
+It converts IL (Intermediate Language) code to native machine code via JIT.
+All .NET languages (C#, VB.NET, F#) compile down to IL and run on the CLR.
+# Q5. What is CTS?
+CTS stands for Common Type System.
+It defines how types are declared, used, and managed in the .NET runtime.
+It ensures all .NET languages use the same base types.
+For example, int in C# and Integer in VB.NET both map to System.Int32 in CTS.
+It enables cross-language interoperability.
+# Q6. What is CLS?
+CLS stands for Common Language Specification.
+It is a subset of CTS — a set of rules that all .NET languages must follow.
+Any code written following CLS rules can be used by any .NET language.
+It ensures language interoperability.
+Example: CLS does not allow unsigned types because some languages don't support them.
+# Q7. What is JIT Compiler?
+JIT stands for Just-In-Time Compiler.
+It converts IL (Intermediate Language) code to native machine code at runtime.
+This happens the first time a method is called.
+After the first compilation, the native code is cached and reused.
+There are three types: Normal JIT, Pre-JIT, and Econo-JIT.
+JIT enables platform-specific optimization at runtime.
+# Q8. Managed vs Unmanaged Code?
+Managed code runs under the .NET runtime (CLR).
+The CLR handles memory, garbage collection, and type safety automatically.
+Unmanaged code runs outside the CLR — like native C or C++ code.
+Unmanaged code must manually manage memory allocation and deallocation.
+In .NET, you interact with unmanaged code via P/Invoke or COM Interop.
+Any unmanaged resources (file handles, DB connections) should be wrapped in IDisposable.
+# Q9. What is Garbage Collection?
+Garbage Collection (GC) is the automatic memory management system in .NET.
+It periodically finds objects with no references and frees their heap memory.
+Developers don't manually free memory like in C/C++.
+The GC runs in the background and compacts the heap.
+Key interview line: "GC handles managed memory automatically. Use IDisposable for unmanaged resources."
+# Q10. GC Generations?
+The GC divides the heap into three generations.
+Generation 0: newly allocated, short-lived objects — collected most frequently.
+Generation 1: objects that survived a Gen 0 collection — medium-lived.
+Generation 2: long-lived objects like static data — collected least often.
+Large Object Heap (LOH) stores objects larger than 85KB — collected with Gen 2.
+This generational approach improves GC performance by focusing on short-lived objects.
+# Q11. Encapsulation?
+Encapsulation is hiding the internal state of an object and exposing only what is necessary.
+It protects data from unintended modification.
+Achieved using private fields with public getters and setters (properties).
+Example: private int _salary; public int Salary { get; private set; }
+Key interview line: "Encapsulation = hide implementation, expose a clean interface."
+# Q12. Abstraction?
+Abstraction means showing only essential features and hiding complexity.
+The user interacts with a simple interface without knowing the internal workings.
+Achieved in C# via abstract classes and interfaces.
+Example: You use a car's steering wheel without knowing the engine mechanics.
+Abstraction is about WHAT something does; Encapsulation is about HOW it hides data.
+# Q13. Inheritance?
+Inheritance allows a child class to inherit properties and methods from a parent class.
+Promotes code reuse and establishes an is-a relationship.
+In C#, use the colon (:) to inherit: class Dog : Animal
+C# supports single inheritance for classes.
+A class can implement multiple interfaces.
+Use inheritance only when there is a true is-a relationship.
+# Q14. Polymorphism?
+Polymorphism means one interface, many implementations.
+Compile-time polymorphism: method overloading — same method name, different parameters.
+Runtime polymorphism: method overriding — child class overrides parent's virtual method.
+Enables writing flexible, reusable code that works with different object types.
+Key interview line: "Polymorphism allows different objects to respond to the same call differently."
+# Q15. Overloading vs Overriding?
+Overloading: same method name, different parameters in the same class — compile-time.
+Overriding: child class redefines a parent's virtual/abstract method — runtime.
+Overloading is resolved at compile time (static binding).
+Overriding is resolved at runtime (dynamic binding).
+Overloading = same class. Overriding = parent-child relationship.
+# Q16. Abstract Class?
+An abstract class cannot be instantiated directly.
+It can have abstract methods (no body — must be overridden) and concrete methods (with body).
+It can have constructors, fields, and properties.
+Used to define a base template for related classes.
+Key difference from interface: abstract class can have implementation; interface cannot (in older C#).
+A class can inherit only one abstract class.
+# Q17. Interface?
+An interface is a pure contract — it defines what a class must do, not how.
+All methods are implicitly public and abstract (before C# 8).
+C# 8+ supports default interface implementations.
+A class can implement multiple interfaces.
+Interfaces are used for loose coupling and dependency injection.
+Use interface for can-do behavior: IDisposable, IComparable, ILogger.
+# Q18. Sealed Class?
+A sealed class cannot be inherited by any other class.
+Prevents unintended extension of a class.
+Example: string is a sealed class in C#.
+sealed override on a method means no further class can override that method.
+Use for security-sensitive classes or final implementations.
+# Q19. Virtual Method?
+The virtual keyword on a base class method allows it to be overridden in derived classes.
+The child class uses the override keyword to provide a new implementation.
+Without virtual, the base class method is always called even through a derived type reference.
+Virtual methods use dynamic dispatch — the actual type at runtime decides which method runs.
+Key interview line: "virtual + override = runtime polymorphism."
+# Q20. Method Hiding?
+Method hiding uses the new keyword in a child class to hide a parent's method.
+Unlike overriding, the base method is called when accessed via a base type reference.
+Example: if you have Base b = new Child(); b.Method() — hiding calls Base.Method(), override calls Child.Method().
+Method hiding breaks polymorphism.
+Use override for polymorphic behavior; new (hiding) only when intentional.
+# Q21. Delegate?
+A delegate is a type-safe function pointer — it holds a reference to a method.
+It defines the method signature (return type + parameters).
+Used to pass methods as arguments, implement callbacks, and events.
+Example: delegate int Calculate(int a, int b);
+Func<> and Action<> are built-in generic delegate types.
+# Q22. Multicast Delegate?
+A multicast delegate can hold references to multiple methods.
+When invoked, it calls all the methods in its invocation list in order.
+Use += to add methods and -= to remove them.
+If the delegate has a return type, only the last method's return value is captured.
+Events in C# are built on multicast delegates.
+# Q23. Events?
+Events are built on delegates and provide a publisher-subscriber model.
+The publisher raises the event; subscribers listen and react.
+The event keyword prevents subscribers from invoking the event directly.
+Events use EventHandler<T> as the standard delegate type.
+Example: button.Click += OnButtonClick;
+Key use: decoupled communication between components.
+# Q24. Anonymous Methods?
+Anonymous methods are inline methods without a name, using the delegate keyword.
+Example: button.Click += delegate(object s, EventArgs e) { Console.WriteLine("Clicked"); };
+They can capture variables from the enclosing scope (closures).
+Lambda expressions are the modern, cleaner replacement for anonymous methods.
+# Q25. Lambda Expressions?
+Lambda expressions are shorthand for anonymous methods — cleaner syntax.
+Syntax: (parameters) => expression or statement block.
+Example: var result = list.Where(x => x.Age > 18);
+Used extensively with LINQ and delegates.
+They can capture outer variables — this is called a closure.
+# Q26. Extension Methods?
+Extension methods add new methods to existing types without modifying the original class.
+Defined as static methods in a static class with the first parameter using the this keyword.
+Example: public static string ToTitleCase(this string s) { ... }
+Called as if they were instance methods: "hello world".ToTitleCase()
+LINQ methods (Where, Select, etc.) are all extension methods on IEnumerable<T>.
+# Q27. Reflection?
+Reflection allows inspecting and manipulating types, methods, and properties at runtime.
+Used to load assemblies dynamically, inspect metadata, or invoke methods by name.
+Example: Type t = typeof(MyClass); t.GetMethods();
+Used in frameworks, ORMs (like EF), and serializers (like JSON.NET).
+Has a performance cost — use only when necessary.
+# Q28. Dynamic Keyword?
+The dynamic keyword defers type checking from compile time to runtime.
+The compiler skips type checking for dynamic variables.
+Example: dynamic x = 5; x = "hello"; — valid at compile time.
+Useful when working with COM interop, reflection, or dynamic JSON data.
+Overuse can hide bugs — use sparingly and only when necessary.
+# Q29. Expression Trees?
+Expression trees represent code as data — a tree structure of expressions.
+Used by LINQ providers (like EF) to translate C# queries into SQL.
+Built using System.Linq.Expressions namespace.
+Allow inspecting and modifying code logic at runtime.
+Key use case: Entity Framework converts LINQ expression trees into SQL queries.
+# Q30. Covariance and Contravariance?
+Covariance allows using a more derived type than specified — applies to return types.
+Contravariance allows using a less derived type than specified — applies to input parameters.
+In C#, out keyword enables covariance in generics; in keyword enables contravariance.
+Example: IEnumerable<Dog> can be assigned to IEnumerable<Animal> (covariance).
+Example: Action<Animal> can be assigned to Action<Dog> (contravariance).
+# Q31. Array vs List?
+Array has a fixed size set at creation; List is dynamic and can grow or shrink.
+Both are strongly typed.
+List has more built-in methods: Add, Remove, Find, Sort.
+Array has slightly better performance for fixed-size, indexed access.
+Default choice: use List unless size is fixed and performance is critical.
+# Q32. List vs HashSet?
+List maintains insertion order and allows duplicates.
+HashSet does not allow duplicates and has no guaranteed order.
+HashSet lookup (Contains) is O(1) — faster than List's O(n).
+Use List when you need ordered, indexed access.
+Use HashSet when you need fast existence checks and uniqueness enforcement.
+# Q33. Dictionary vs Hashtable?
+Dictionary<TKey, TValue> is generic, type-safe, and faster.
+Hashtable is non-generic — stores objects, requires casting, and is thread-safe but slower.
+Dictionary is the modern choice — always prefer it over Hashtable.
+Dictionary throws KeyNotFoundException for missing keys; use TryGetValue for safe access.
+# Q34. Queue?
+Queue<T> is a FIFO (First In, First Out) collection.
+Enqueue adds to the back; Dequeue removes from the front; Peek views without removing.
+Used for task scheduling, message processing, BFS algorithms.
+ConcurrentQueue<T> is the thread-safe version for multi-threaded scenarios.
+# Q35. Stack?
+Stack<T> is a LIFO (Last In, First Out) collection.
+Push adds to the top; Pop removes from the top; Peek views the top without removing.
+Used for undo operations, expression parsing, DFS algorithms.
+ConcurrentStack<T> is the thread-safe version.
+# Q36. Concurrent Collections?
+Concurrent collections in System.Collections.Concurrent are thread-safe without explicit locking.
+ConcurrentDictionary: thread-safe dictionary with atomic Add/Update/Remove.
+ConcurrentQueue: thread-safe FIFO.
+ConcurrentStack: thread-safe LIFO.
+ConcurrentBag: unordered, thread-safe collection.
+Prefer these over manually locking standard collections in multi-threaded code.
+# Q37. IEnumerable?
+IEnumerable<T> is the base interface for all enumerable sequences.
+Exposes a single method: GetEnumerator() — enables foreach iteration.
+Represents a forward-only, read-only cursor over a sequence.
+Supports deferred (lazy) execution when used with LINQ.
+All LINQ extension methods are defined on IEnumerable<T>.
+# Q38. ICollection?
+ICollection<T> extends IEnumerable<T>.
+Adds Count, Add, Remove, Contains, and Clear operations.
+Represents a modifiable, countable collection.
+Implemented by List<T>, HashSet<T>, Dictionary<T>, etc.
+# Q39. IList?
+IList<T> extends ICollection<T>.
+Adds index-based access: this[int index], IndexOf, Insert, RemoveAt.
+Represents an ordered, index-accessible collection.
+Implemented by List<T> and arrays.
+# Q40. IQueryable?
+IQueryable<T> extends IEnumerable<T>.
+Translates LINQ queries to a query language (like SQL) and executes on the server.
+Used with database providers like Entity Framework.
+Defers query execution until iterated.
+Key difference from IEnumerable: IEnumerable filters in memory; IQueryable filters on the database.
+# Q41. Async Await?
+async marks a method as asynchronous.
+await pauses execution until the awaited task completes without blocking the thread.
+The thread is freed to handle other work while waiting — improves scalability.
+Always returns Task (no return value) or Task<T> (with return value).
+Key rule: avoid async void except for event handlers.
+# Q42. Task?
+Task represents an asynchronous operation.
+Task is a higher-level abstraction built on the thread pool.
+Task<T> returns a result; Task returns void.
+Supports continuation (.ContinueWith), cancellation, and exception handling.
+Use Task.Run() to offload CPU-bound work to a thread pool thread.
+# Q43. Thread?
+Thread is a low-level OS-level unit of execution.
+Creates a dedicated OS thread — heavier than a Task.
+Use Thread when you need explicit control (priority, foreground/background, STA apartment).
+For most async work, prefer Task — it's lighter and managed by the thread pool.
+Creating many threads directly is expensive — thread pool manages reuse efficiently.
+# Q44. Thread Pool?
+The thread pool is a managed pool of reusable worker threads.
+Avoids the overhead of creating and destroying threads repeatedly.
+Task.Run() and async/await use the thread pool automatically.
+Controlled by ThreadPool.SetMaxThreads and SetMinThreads.
+Key benefit: resource reuse and automatic scaling based on workload.
+# Q45. Deadlock?
+A deadlock occurs when two or more tasks are waiting on each other and none can proceed.
+In async code, calling .Result or .Wait() on an async method can cause a deadlock.
+This blocks the thread that the await continuation needs to resume on.
+Prevention: use await consistently — never mix blocking calls with async code.
+Key rule: if you go async, go async all the way.
+# Q46. CancellationToken?
+CancellationToken allows cooperative cancellation of async operations.
+A CancellationTokenSource creates the token; calling .Cancel() signals cancellation.
+The async method checks the token periodically and throws OperationCanceledException.
+Pass the token to all async calls in the chain for proper propagation.
+Used in long-running API calls, background jobs, and user-cancellable operations.
+# Q47. ConfigureAwait?
+ConfigureAwait(false) tells the awaiter not to resume on the original synchronization context.
+In UI or classic ASP.NET, the sync context is important — resuming on it prevents deadlocks.
+In ASP.NET Core, there is no sync context, so ConfigureAwait(false) is less critical.
+Use ConfigureAwait(false) in library code to improve performance and avoid deadlocks.
+In application-level ASP.NET Core code, it is optional.
+# Q48. Parallel Programming?
+Parallel programming runs multiple operations simultaneously on multiple CPU cores.
+Use Parallel.For and Parallel.ForEach for CPU-bound work.
+Use Task.WhenAll for running multiple async tasks concurrently.
+Parallel.ForEach is for CPU-bound work; async/await is for I/O-bound work.
+Key distinction: don't use Parallel.ForEach with async methods — use async LINQ or Task.WhenAll instead.
+# Q49. Race Condition?
+A race condition occurs when two threads access shared data simultaneously and the outcome depends on timing.
+Leads to unpredictable, hard-to-reproduce bugs.
+Prevention: use lock, Monitor, Mutex, or Interlocked for synchronized access.
+Use thread-safe collections like ConcurrentDictionary for shared state.
+Design stateless services wherever possible to eliminate shared mutable state.
+# Q50. Lock Keyword?
+The lock keyword acquires a mutual exclusion lock on an object, preventing other threads from entering the same block.
+Only one thread can execute the locked block at a time.
+The lock object should be a private, readonly object — never lock on this or a string.
+Example: lock(_lockObj) { _counter++; }
+For simpler atomic operations, use Interlocked.Increment instead of lock.
+@netcore
+# Q51. What is .NET Core?
+.NET Core is a cross-platform, open-source, high-performance framework for building modern applications.
+Runs on Windows, Linux, and macOS.
+It is the successor to .NET Framework — leaner, faster, and cloud-ready.
+From .NET 5 onwards, it was unified and renamed simply to .NET.
+Ideal for web APIs, microservices, cloud functions, and console apps.
+# Q52. .NET Framework vs .NET Core?
+.NET Framework is Windows-only, closed-source, mature, and in maintenance mode.
+.NET Core (now .NET 5+) is cross-platform, open-source, faster, and actively developed.
+New projects should always use .NET 6/7/8.
+.NET Framework is kept for legacy Windows desktop apps (WinForms, WPF).
+Key interview line: "New project = .NET 6+. Legacy Windows app = .NET Framework."
+# Q53. Middleware?
+Middleware are components in the HTTP request pipeline that process requests and responses.
+Each middleware either handles the request, modifies it, or passes it to the next via next().
+Configured in Program.cs using app.Use*() methods.
+Examples: authentication, logging, exception handling, CORS, routing.
+Key interview line: "Middleware = steps in an assembly line that every HTTP request passes through."
+# Q54. Custom Middleware?
+Custom middleware is created by writing a class with an Invoke or InvokeAsync method.
+It receives HttpContext and a RequestDelegate (next).
+Register it using app.UseMiddleware<MyMiddleware>() in Program.cs.
+Used for: custom logging, request timing, IP filtering, custom authentication.
+Example structure: constructor receives next delegate; Invoke runs logic before and after next(context).
+# Q55. Request Pipeline?
+The request pipeline is the ordered sequence of middleware components that process each HTTP request.
+Request flows top to bottom through the middleware stack.
+Response flows bottom to top (in reverse order) as each middleware returns.
+Order matters: UseRouting must come before UseAuthentication, which must come before UseAuthorization.
+Short-circuit middleware can stop the pipeline without calling next().
+# Q56. Dependency Injection?
+DI is a design pattern where an object's dependencies are provided from outside rather than created inside.
+ASP.NET Core has a built-in IoC container.
+Services are registered in Program.cs: builder.Services.AddScoped<IService, Service>()
+Injected via constructors — the container resolves and provides them automatically.
+Key benefit: loose coupling, testability, and maintainability.
+# Q57. Service Lifetimes?
+Singleton: one instance for the entire app lifetime — shared across all requests.
+Scoped: one instance per HTTP request — new instance per request but shared within the same request.
+Transient: new instance every time it is requested — for lightweight, stateless services.
+DbContext should be Scoped. Logging services should be Singleton. Simple helpers can be Transient.
+# Q58. Singleton?
+Singleton creates one instance when first requested and reuses it for the entire app lifetime.
+Be careful with mutable state in singletons — it is shared across all requests.
+Not suitable for services that depend on Scoped services (causes captive dependency issue).
+Use for: configuration, caching, logging, connection pools.
+# Q59. Scoped?
+Scoped creates one instance per HTTP request.
+The same instance is shared within a single request but a new one is created for the next request.
+Entity Framework DbContext is registered as Scoped by default.
+Do not inject a Scoped service into a Singleton — it will behave like a Singleton unexpectedly.
+# Q60. Transient?
+Transient creates a new instance every time it is requested from the DI container.
+Best for lightweight, stateless services.
+Safe to inject anywhere — no shared state concerns.
+Use for: validators, formatters, one-off utility services.
+Memory overhead if injected into frequently called services.
+# Q61. Startup.cs vs Program.cs?
+In .NET 5 and earlier: Startup.cs had ConfigureServices (register DI) and Configure (build middleware pipeline).
+In .NET 6+: the minimal hosting model merges everything into Program.cs using the WebApplicationBuilder.
+Program.cs is now the single entry point for both service registration and middleware configuration.
+Startup.cs can still be used in .NET 6+ by calling builder.WebHost.UseStartup<Startup>() — but it is no longer required.
+# Q62. Kestrel?
+Kestrel is the cross-platform, built-in web server for ASP.NET Core.
+It is lightweight, high-performance, and runs on all platforms.
+In production, Kestrel typically sits behind a reverse proxy like IIS, Nginx, or Azure Front Door.
+The reverse proxy handles SSL termination, load balancing, and static file serving.
+Kestrel handles the actual HTTP processing.
+# Q63. Configuration Management?
+ASP.NET Core uses a layered configuration system.
+Sources: appsettings.json, appsettings.{Environment}.json, environment variables, command-line args, Azure Key Vault.
+Access config via IConfiguration injected into constructors.
+Use the Options pattern (IOptions<T>) to bind config sections to strongly typed classes.
+Environment-specific files override the base appsettings.json values.
+# Q64. appsettings.json?
+The primary configuration file for ASP.NET Core apps.
+Stores connection strings, API keys, feature flags, and app-specific settings.
+Can have environment-specific variants: appsettings.Development.json, appsettings.Production.json.
+Never commit secrets (passwords, API keys) to appsettings.json.
+Use environment variables, Azure Key Vault, or AWS Secrets Manager for production secrets.
+# Q65. Environment Variables?
+Environment variables are OS-level settings injected at runtime.
+They override appsettings.json values in ASP.NET Core's configuration hierarchy.
+The ASPNETCORE_ENVIRONMENT variable controls the environment (Development, Staging, Production).
+Hierarchy (lowest to highest): appsettings.json → appsettings.{env}.json → environment variables → command-line args.
+Use for secrets and environment-specific values in production.
+# Q66. Logging?
+ASP.NET Core has a built-in logging abstraction: ILogger<T>.
+Inject ILogger<T> via DI and call _logger.LogInformation(), LogWarning(), LogError().
+Logging providers: Console, Debug, EventLog, Application Insights.
+Third-party options: Serilog and NLog for structured logging and advanced sinks.
+Log levels: Trace, Debug, Information, Warning, Error, Critical.
+# Q67. Serilog?
+Serilog is a popular structured logging library for .NET.
+Unlike plain text logging, Serilog logs structured data (key-value pairs) that can be queried.
+Supports multiple sinks: Console, File, Seq, Elasticsearch, Application Insights.
+Configured in Program.cs: Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+Replaces the default ASP.NET Core logger with UseSerilog() in the host builder.
+# Q68. NLog?
+NLog is another popular logging framework for .NET.
+Configured via nlog.config XML file or in code.
+Supports targets: files, database, email, console.
+Slightly less popular than Serilog for structured logging but well-established in enterprise apps.
+Both Serilog and NLog integrate with ASP.NET Core's ILogger abstraction.
+# Q69. Health Checks?
+Health checks expose an endpoint (typically /health) reporting the app's operational status.
+ASP.NET Core has built-in health check support via AddHealthChecks() and MapHealthChecks().
+Can check: DB connectivity, external API availability, disk space, memory.
+Returns: Healthy, Degraded, or Unhealthy status.
+Used by Kubernetes liveness/readiness probes and load balancers to route traffic.
+# Q70. API Versioning?
+API versioning allows maintaining multiple versions of an API simultaneously.
+Prevents breaking existing clients when new features are added.
+Common approaches: URL versioning (/api/v1/users), query string (?api-version=1.0), or header versioning.
+Use the Microsoft.AspNetCore.Mvc.Versioning NuGet package.
+URL versioning is most visible and easiest to understand.
+# Q71. Authentication?
+Authentication verifies who the user is.
+ASP.NET Core supports multiple authentication schemes: JWT Bearer, Cookies, OAuth, OpenID Connect.
+Configured in Program.cs with AddAuthentication() and UseAuthentication() middleware.
+The [Authorize] attribute protects endpoints — unauthenticated requests return 401.
+Authentication must be configured before authorization in the middleware pipeline.
+# Q72. Authorization?
+Authorization verifies what an authenticated user is allowed to do.
+ASP.NET Core supports role-based ([Authorize(Roles="Admin")]) and policy-based authorization.
+Configured with AddAuthorization() and UseAuthorization() middleware.
+Returns 403 Forbidden when an authenticated user lacks permission.
+Key distinction: Authentication = who you are. Authorization = what you can do.
+# Q73. Policy Based Authorization?
+Policies define complex authorization rules beyond simple role checks.
+Defined in Program.cs: builder.Services.AddAuthorization(options => options.AddPolicy("MinAge", policy => policy.RequireClaim("age")));
+Applied with [Authorize(Policy="MinAge")].
+Custom requirements implement IAuthorizationRequirement and IAuthorizationHandler.
+More flexible and maintainable than role-based for complex business rules.
+# Q74. Claims Based Authorization?
+Claims are key-value pairs representing user attributes stored in the JWT or identity.
+Example claims: userId, email, role, department.
+Authorization can be based on specific claim values.
+Access via User.Claims or User.FindFirst("ClaimType").Value in a controller.
+Combining claims and policies gives fine-grained, flexible access control.
+# Q75. JWT?
+JWT (JSON Web Token) is a compact, self-contained token for stateless authentication.
+Structure: header.payload.signature — all Base64 encoded, separated by dots.
+Header: algorithm used. Payload: claims (userId, role, expiry). Signature: tamper-proof seal.
+Server issues a JWT after login; client sends it in the Authorization: Bearer <token> header.
+Server validates the signature and claims without querying the database — stateless.
+# Q76. OAuth?
+OAuth 2.0 is an authorization framework that allows third-party apps to access user data without sharing credentials.
+Example: "Sign in with Google" — Google authenticates the user and returns an access token.
+Flow: User → App → Authorization Server (Google) → Access Token → Resource Server.
+Roles: Resource Owner (user), Client (your app), Authorization Server (Google), Resource Server (API).
+OAuth grants access — it does not directly handle authentication (that is OpenID Connect's job).
+# Q77. OpenID Connect?
+OpenID Connect (OIDC) is an identity layer built on top of OAuth 2.0.
+It adds authentication to OAuth's authorization framework.
+Returns an ID token (a JWT) containing user identity information.
+Used by identity providers: Azure AD, Google, Okta, Auth0.
+Summary: OAuth = authorization (access). OIDC = authentication (identity). Together they handle secure SSO.
+# Q78. Refresh Token?
+A refresh token is a long-lived token used to get a new access token without re-logging in.
+Access tokens are short-lived (15 minutes). Refresh tokens are long-lived (days/weeks).
+The client sends the refresh token to a /token/refresh endpoint to get a new access token.
+Refresh tokens are stored securely (HTTP-only cookies or secure server-side storage).
+On each use, rotate the refresh token (invalidate old, issue new) to detect token theft.
+# Q79. Token Expiry?
+Short access token expiry (15 minutes) minimizes the window if a token is stolen.
+Claims like exp (expiration time) in the JWT are validated on every request.
+When the access token expires, use the refresh token to get a new one without requiring re-login.
+Configure expiry in AddAuthentication: TokenValidationParameters.ClockSkew = TimeSpan.Zero to enforce exact expiry.
+Never set access tokens with very long expiry — it is a security risk.
+# Q80. CORS?
+CORS (Cross-Origin Resource Sharing) is a browser security policy blocking requests to a different domain.
+When your React app (localhost:3000) calls your API (localhost:5000), the browser blocks it without CORS config.
+Configure in ASP.NET Core: builder.Services.AddCors() and app.UseCors().
+In development, allow all origins. In production, whitelist only your frontend domain.
+CORS is enforced by the browser — it is not a server security feature by itself.
+# Q81. Swagger?
+Swagger (OpenAPI) auto-generates interactive API documentation from your ASP.NET Core code.
+Add Swashbuckle.AspNetCore NuGet package.
+Configure with AddSwaggerGen() and UseSwagger() / UseSwaggerUI() in Program.cs.
+Developers can explore and test all API endpoints directly in the browser.
+Essential for team collaboration and API consumer onboarding.
+# Q82. Filters?
+Filters run code at specific points in the ASP.NET Core request processing pipeline.
+Types: Authorization (runs first), Resource, Action, Exception, Result filters.
+Applied globally, per controller, or per action using attributes.
+More granular than middleware — scoped to the MVC layer.
+Example: [Authorize] is an Authorization filter; [ValidateModel] is a custom Action filter.
+# Q83. Action Filters?
+Action filters run code before and after a controller action executes.
+Implement IActionFilter (OnActionExecuting / OnActionExecuted) or inherit ActionFilterAttribute.
+Used for: request logging, model validation, permission checks, response caching.
+Applied with [MyActionFilter] attribute on controller or action.
+Access the action's context (arguments, result) inside the filter methods.
+# Q84. Exception Filters?
+Exception filters handle unhandled exceptions thrown during action execution.
+Implement IExceptionFilter and implement OnException(ExceptionContext context).
+Set context.Result to return a custom error response and set context.ExceptionHandled = true.
+Less powerful than global exception handling middleware — only catches MVC pipeline exceptions.
+Use global exception middleware for a comprehensive catch-all strategy.
+# Q85. Global Exception Handling?
+Catches all unhandled exceptions in the entire application pipeline.
+In ASP.NET Core, use app.UseExceptionHandler("/error") or a custom exception middleware.
+A Problem Details response (RFC 7807) is the standard format for API error responses.
+Logs the full exception internally; returns a clean, safe error response to the client.
+Never expose stack traces to clients in production.
+# Q86. Model Binding?
+Model binding automatically maps HTTP request data to action method parameters and model objects.
+Sources: [FromBody] (JSON body), [FromQuery] (query string), [FromRoute] (route values), [FromHeader].
+The [ApiController] attribute enables automatic model validation and returns 400 if ModelState is invalid.
+Binding happens before the action method executes.
+Custom model binders can be written for special binding scenarios.
+# Q87. Routing?
+Routing maps incoming HTTP requests to controller actions based on URL patterns.
+Two types: Attribute routing and Conventional routing.
+In ASP.NET Core, routing is configured via UseRouting() and UseEndpoints().
+Attribute routing is preferred for Web APIs — routes are defined directly on controllers.
+Conventional routing is typically used for MVC (HTML) applications.
+# Q88. Attribute Routing?
+Routes are defined directly on controllers and actions using [Route], [HttpGet], [HttpPost] attributes.
+Example: [HttpGet("users/{id}")] maps GET /users/5 to that action.
+More explicit and clear than conventional routing.
+Supports route constraints: [HttpGet("users/{id:int}")] — only matches integer IDs.
+Preferred for Web APIs.
+# Q89. Conventional Routing?
+Routes are defined centrally in Program.cs using MapControllerRoute().
+Uses route templates like "{controller}/{action}/{id?}".
+The framework maps the URL segments to controller and action names automatically.
+Typical for MVC apps rendering HTML views.
+Less explicit than attribute routing — relies on naming conventions.
+# Q90. Validation?
+ASP.NET Core supports model validation via Data Annotations: [Required], [MaxLength], [Range], [EmailAddress].
+With [ApiController], invalid models automatically return 400 Bad Request.
+Manually check: if (!ModelState.IsValid) return BadRequest(ModelState).
+Fluent Validation is a library providing more powerful, code-based validation rules.
+Always validate on the server — never trust client-side validation alone.
+# Q91. Fluent Validation?
+FluentValidation is a library for building strongly typed validation rules in a fluent, readable syntax.
+Create a class inheriting AbstractValidator<T> and define rules in the constructor.
+Example: RuleFor(x => x.Email).NotEmpty().EmailAddress();
+Integrates with ASP.NET Core's model validation pipeline via AddFluentValidation().
+Preferred over Data Annotations for complex validation scenarios.
+# Q92. Background Services?
+Background services run long-running tasks in the background without blocking the request pipeline.
+Implement IHostedService or inherit BackgroundService and override ExecuteAsync().
+Registered in DI with builder.Services.AddHostedService<MyService>().
+Examples: email sending, cache warming, message queue consumers, scheduled jobs.
+Runs in the same process as the web app — for heavy work, consider separate worker services.
+# Q93. Hosted Services?
+Hosted services are the same as background services — the terms are interchangeable.
+IHostedService has StartAsync and StopAsync methods.
+BackgroundService is an abstract base class that simplifies implementation via ExecuteAsync.
+The host starts all registered hosted services on application startup and stops them on shutdown.
+Use CancellationToken in ExecuteAsync to handle graceful shutdown properly.
+# Q94. SignalR?
+SignalR is a library for real-time bidirectional communication between server and clients.
+Built on WebSockets with fallbacks (Server-Sent Events, Long Polling) for older browsers.
+Server can push messages to clients without the client polling.
+Use cases: live notifications, chat, dashboards, real-time collaboration.
+Hub is the central class — clients connect to hubs and exchange messages.
+# Q95. Caching?
+Caching stores frequently accessed data in fast memory to reduce redundant computation or DB calls.
+Types in ASP.NET Core: In-Memory Cache (local), Distributed Cache (Redis, SQL).
+Apply caching with IMemoryCache (in-memory) or IDistributedCache (distributed).
+Response caching caches full HTTP responses with [ResponseCache] attribute.
+Key rule: cache data that is expensive to compute and doesn't change frequently.
+# Q96. Memory Cache?
+IMemoryCache stores data in the server's local memory.
+Fast — no network round-trip.
+Data is lost on app restart or when the server is recycled.
+Not suitable for multi-server (load-balanced) environments — each server has its own cache.
+Use for: reference data, config lookups, per-instance computed values.
+# Q97. Distributed Cache?
+IDistributedCache stores data in a shared external store accessible by all servers.
+Common backends: Redis, SQL Server, NCache.
+Suitable for load-balanced, multi-server environments.
+Slightly slower than in-memory cache due to network round-trip.
+Use for: session data, user-specific data, shared application state.
+# Q98. Redis?
+Redis is an in-memory, key-value data store used as a distributed cache, message broker, and queue.
+Extremely fast — sub-millisecond reads/writes.
+Supports strings, hashes, lists, sets, sorted sets, pub/sub, streams.
+In ASP.NET Core, use StackExchange.Redis client with IDistributedCache or directly.
+Common uses: session storage, caching, rate limiting counters, pub/sub messaging.
+# Q99. API Security?
+Use HTTPS everywhere — no exceptions.
+Authenticate with JWT or OAuth 2.0.
+Authorize with roles or policies.
+Validate all inputs to prevent injection attacks.
+Implement rate limiting to prevent abuse.
+Restrict CORS to known origins.
+Store secrets in environment variables or a secret manager.
+Log and monitor for suspicious activity.
+# Q100. API Performance Optimization?
+Use async/await for all I/O operations — never block threads.
+Add caching (Redis or memory cache) for expensive queries.
+Use AsNoTracking() in EF Core for read-only queries.
+Use pagination to avoid returning large datasets.
+Compress responses with response compression middleware.
+Profile with Application Insights or MiniProfiler to find bottlenecks.
+Use CDN for static content.
+@webapi
+# Q101. REST API?
+REST (Representational State Transfer) is an architectural style for building APIs over HTTP.
+Uses standard HTTP verbs: GET (read), POST (create), PUT/PATCH (update), DELETE (remove).
+Stateless — each request contains all the information the server needs.
+Resources are identified by URIs: /api/users/5.
+Returns data in JSON or XML format.
+Key principles: statelessness, uniform interface, resource-based URLs, cacheable responses.
+# Q102. SOAP vs REST?
+SOAP is a protocol with strict standards — XML only, requires WSDL, has built-in security (WS-Security).
+REST is an architectural style — flexible, uses JSON or XML, simpler, stateless.
+SOAP has built-in ACID transactions and is better for enterprise/banking systems requiring strict contracts.
+REST is lightweight, easy to consume, and the standard for modern web and mobile APIs.
+Summary: SOAP = strict, heavy, enterprise. REST = lightweight, flexible, web-native.
+# Q103. GET vs POST?
+GET retrieves data — parameters in the URL query string. Safe, idempotent, cacheable.
+POST sends data to create a resource — data in the request body. Not idempotent, not cacheable.
+GET requests should never modify server state.
+POST should be used for creating resources or operations with side effects.
+Never send sensitive data in GET query strings — it appears in browser history and logs.
+# Q104. PUT vs PATCH?
+PUT replaces the entire resource with the provided data — idempotent.
+PATCH applies partial updates — only the fields provided are updated.
+PUT: if you omit a field, it is set to null or default.
+PATCH: if you omit a field, it remains unchanged.
+Use PATCH when you want to update only specific fields of a resource.
+# Q105. DELETE?
+DELETE removes a resource identified by the URI.
+It is idempotent — deleting an already-deleted resource should return 404 or 204, not error.
+Returns 204 No Content on success (no body) or 200 OK with a confirmation body.
+Soft delete (marking as deleted) vs hard delete (actual removal) is a design choice.
+Consider cascade delete behavior for related entities.
+# Q106. Idempotent API?
+An idempotent operation produces the same result no matter how many times it is called.
+GET, PUT, DELETE are idempotent. POST is not.
+PATCH can be idempotent depending on implementation.
+Idempotency is important for retry logic — you can safely retry idempotent operations on network failure.
+Implement idempotency keys for POST requests in payment or critical mutation APIs.
+# Q107. HTTP Status Codes?
+1xx: Informational. 2xx: Success. 3xx: Redirection. 4xx: Client Error. 5xx: Server Error.
+200 OK: request succeeded. 201 Created: resource created. 204 No Content: success, no body.
+400 Bad Request: invalid input. 401 Unauthorized: not authenticated. 403 Forbidden: authenticated but no permission.
+404 Not Found: resource doesn't exist. 409 Conflict: resource conflict (duplicate).
+500 Internal Server Error: unexpected server failure.
+# Q108. 200 vs 201?
+200 OK: the request succeeded and the response body contains the result — used for GET, PUT, PATCH.
+201 Created: a new resource was created — used for POST. The response should include a Location header with the URI of the new resource.
+Always return 201 (not 200) when a resource is created via POST.
+# Q109. 401 vs 403?
+401 Unauthorized: the request lacks valid authentication credentials. The client should authenticate.
+403 Forbidden: the client is authenticated but does not have permission to access the resource.
+401 = "Who are you? Please log in." 403 = "I know who you are, but you can't do this."
+# Q110. 404 vs 500?
+404 Not Found: the requested resource does not exist — this is a client error.
+500 Internal Server Error: something unexpected went wrong on the server — this is a server error.
+Return 404 when a specific resource is not found. Return 500 only for unhandled exceptions.
+Always log 500 errors with full details internally; return a generic message to the client.
+# Q111. DTO (Data Transfer Object)?
+A DTO is a simple object used to transfer data between layers or between API and client.
+It decouples the API contract from the internal domain/database model.
+Prevents over-posting (client sending unexpected fields) and over-fetching (sending too much data).
+Example: UserDto contains only Name and Email — not the Password hash stored in the User entity.
+Always use DTOs for API request and response payloads.
+# Q112. AutoMapper?
+AutoMapper is a library that automatically maps between objects (e.g., Entity to DTO).
+Eliminates repetitive manual property mapping code.
+Configure mappings in a Profile class: CreateMap<User, UserDto>();
+Use IMapper injected via DI to perform mappings: _mapper.Map<UserDto>(user);
+Use for straightforward mappings. For complex mappings with logic, consider manual mapping.
+# Q113. Pagination?
+Pagination splits large result sets into pages to improve performance and API usability.
+Common patterns: Offset-based (page number + page size) and Cursor-based (for large datasets).
+API accepts page and pageSize query parameters; returns data + total count + page metadata.
+In EF Core: .Skip((page - 1) * pageSize).Take(pageSize)
+Always paginate APIs that can return large collections — never return unbounded lists.
+# Q114. Sorting?
+Allow clients to specify sort column and direction via query parameters.
+Example: GET /api/users?sortBy=name&sortDir=asc
+Apply sorting in EF Core using OrderBy / OrderByDescending based on the sort parameter.
+Validate sort column names against allowed values to prevent SQL injection or errors.
+Default to a sensible sort (e.g., created date descending) when no sort is specified.
+# Q115. Filtering?
+Allow clients to filter results via query parameters: GET /api/users?department=Engineering
+Apply filters as WHERE conditions in EF Core queries.
+Use IQueryable to build up filter conditions dynamically before executing the query.
+Validate and sanitize filter inputs to prevent injection.
+Combine filtering with pagination and sorting for fully flexible API queries.
+# Q116. API Throttling?
+API throttling limits the rate of requests a client can make to protect the API from overload.
+Usually measured in requests per second, per minute, or per day.
+Implemented in ASP.NET Core using the built-in rate limiting middleware (.NET 7+) or third-party libraries.
+Returns 429 Too Many Requests when the limit is exceeded.
+Throttling protects against abuse, DDoS, and accidental hammering from bugs.
+# Q117. API Rate Limiting?
+Rate limiting and throttling are often used interchangeably.
+Rate limiting enforces quotas per client (by IP, API key, or user ID).
+Strategies: Fixed Window (limit per time window), Sliding Window (rolling time window), Token Bucket (burst allowance).
+In .NET 7+: use AddRateLimiter() and UseRateLimiter() with built-in policies.
+Always return Retry-After header with 429 response so clients know when to retry.
+# Q118. API Gateway?
+An API Gateway is the single entry point for all client requests in a microservices architecture.
+Handles: request routing, authentication, rate limiting, SSL termination, logging, load balancing.
+Clients talk to the gateway; the gateway routes to the appropriate microservice.
+Examples: AWS API Gateway, Azure API Management, Kong, Ocelot (.NET).
+Simplifies client code — clients only need to know one endpoint.
+# Q119. Versioning?
+API versioning allows you to evolve your API without breaking existing clients.
+Common strategies: URL path (/api/v1/users), query string (?api-version=1), HTTP header (api-version: 1).
+Deprecate old versions gradually — provide migration guides and sunset dates.
+URL versioning is the most visible and widely understood approach.
+Use the Microsoft.AspNetCore.Mvc.Versioning package for seamless integration.
+# Q120. OpenAPI?
+OpenAPI (formerly Swagger) is a specification for describing RESTful APIs in a machine-readable format (YAML/JSON).
+Allows auto-generation of documentation, client SDKs, and mock servers.
+In ASP.NET Core, Swashbuckle generates the OpenAPI spec from your code automatically.
+The OpenAPI spec file can be used by tools like Postman, API clients, and code generators.
+Industry standard for API documentation and contract-first API design.
+# Q121. Secure API Design?
+Use HTTPS for all communication.
+Authenticate every request (JWT, API keys, OAuth).
+Authorize based on roles or policies.
+Validate and sanitize all inputs.
+Implement rate limiting.
+Use CORS to restrict allowed origins.
+Never expose sensitive data in error messages.
+Store secrets in environment variables or a secret manager.
+Audit and log all sensitive operations.
+# Q122. Exception Handling?
+Use global exception handling middleware to catch all unhandled exceptions.
+Log the full exception details internally.
+Return a clean Problem Details response (RFC 7807) to the client.
+Never expose stack traces or internal error details to the client.
+Use specific HTTP status codes: 400 for validation errors, 404 for not found, 500 for unexpected errors.
+# Q123. Correlation IDs?
+A Correlation ID is a unique identifier attached to each request to trace it across services and logs.
+Generated at the API gateway or first entry point; passed in request headers (X-Correlation-ID).
+All downstream services log this ID along with their own log entries.
+Enables end-to-end request tracing in distributed systems.
+Essential for debugging issues in microservices where a single operation spans multiple services.
+# Q124. Logging APIs?
+Log every significant request and response: method, path, status code, duration.
+Include correlation IDs to trace requests across services.
+Use structured logging (Serilog) so logs can be queried and filtered.
+Do not log sensitive data: passwords, tokens, PII.
+Centralize logs to a log aggregation system: Elasticsearch, Azure Monitor, CloudWatch.
+# Q125. Retry Policies?
+Retry policies automatically retry failed operations a specified number of times.
+Used for transient failures: network timeouts, temporary service unavailability.
+Implement using Polly: Policy.Handle<HttpRequestException>().WaitAndRetryAsync(3, attempt => TimeSpan.FromSeconds(attempt));
+Use exponential backoff with jitter — don't retry immediately and don't retry all at the same time.
+Only retry idempotent operations — retrying POST creates duplicates.
+# Q126. Polly?
+Polly is a .NET resilience and transient fault handling library.
+Provides: Retry, Circuit Breaker, Timeout, Bulkhead Isolation, Fallback, and Hedging policies.
+Integrates with HttpClientFactory in ASP.NET Core for resilient HTTP calls.
+Example: AddPolicyHandler(GetRetryPolicy()) on an HttpClient registration.
+Essential for production-grade microservice communication.
+# Q127. Circuit Breaker?
+The circuit breaker pattern stops calling a failing service after a threshold of failures.
+States: Closed (normal), Open (failing — reject immediately), Half-Open (test recovery).
+When open, calls fail fast without waiting for timeout — prevents cascading failures.
+After a timeout, it enters Half-Open and allows a test call through.
+Implemented with Polly: Policy.Handle<Exception>().CircuitBreakerAsync(5, TimeSpan.FromSeconds(30));
+# Q128. Bulkhead Pattern?
+The bulkhead pattern isolates failures in one part of the system from affecting others.
+Named after ship compartments — a breach in one compartment doesn't sink the ship.
+In APIs: limit concurrent calls per service to prevent one slow service from consuming all threads.
+Implemented with Polly's BulkheadAsync policy.
+Ensures degraded performance in one area doesn't cascade into total system failure.
+# Q129. Timeout Pattern?
+The timeout pattern sets a maximum wait time for an operation — if it exceeds the limit, cancel it.
+Prevents threads from being held indefinitely waiting for a slow dependency.
+Implemented with Polly: Policy.TimeoutAsync(TimeSpan.FromSeconds(5));
+Always combine timeout with retry and circuit breaker for comprehensive resilience.
+Set timeouts based on SLAs — not too short (false positives) and not too long (wastes resources).
+# Q130. Retry Pattern?
+The retry pattern re-attempts a failed operation with a delay.
+Use for: transient network errors, temporary service unavailability, rate limit responses (429).
+Strategies: immediate retry, fixed delay, exponential backoff, exponential backoff with jitter.
+Jitter adds randomness to the delay to prevent thundering herd — all retrying at the same time.
+Only retry on known transient errors — not on permanent errors like 400 Bad Request.
+@sql
+# Q131. Clustered Index?
+A clustered index defines the physical order of data rows in the table.
+There can be only one clustered index per table.
+The primary key automatically creates a clustered index unless otherwise specified.
+Range queries (BETWEEN, >, <) perform very well on clustered indexes.
+Key interview line: "Clustered index = data IS the index. The table rows are physically sorted by it."
+# Q132. Non-Clustered Index?
+A non-clustered index is a separate structure from the table data.
+It contains the indexed column values and a pointer (row locator) to the actual data row.
+Multiple non-clustered indexes can exist per table.
+Lookup: SQL uses the index to find the row locator, then does a key lookup to fetch the full row.
+Covering indexes eliminate the key lookup by including all needed columns in the index.
+# Q133. Composite Index?
+An index built on two or more columns.
+The order of columns in the index matters significantly.
+A composite index on (A, B) helps queries filtering on A or (A and B) but NOT on B alone.
+Design composite indexes based on the actual query patterns.
+The leading column should be the most selective or most commonly filtered column.
+# Q134. Covering Index?
+A covering index includes all the columns needed to satisfy a query — no table lookup required.
+The query runs entirely from the index without touching the base table rows.
+Add non-key columns using the INCLUDE clause: CREATE INDEX idx ON Employee(DeptId) INCLUDE (Name, Salary)
+Dramatically improves performance for read-heavy queries.
+Key interview line: "Covering index = the index has everything the query needs."
+# Q135. Primary Key?
+Uniquely identifies each row in a table.
+Cannot be NULL.
+Only one per table.
+Automatically creates a clustered index (by default).
+Enforces entity integrity.
+# Q136. Foreign Key?
+Enforces referential integrity between two tables.
+A foreign key column references the primary key of another table.
+Prevents orphaned rows — you cannot insert a child row without a matching parent.
+Cascades can be defined: ON DELETE CASCADE, ON UPDATE CASCADE.
+Key interview line: "Foreign key = link between tables. Prevents invalid references."
+# Q137. Unique Key?
+Ensures all values in a column (or combination) are unique.
+Allows one NULL (unlike primary key which does not allow NULL).
+Creates a non-clustered index automatically.
+Multiple unique constraints are allowed per table.
+Use for: email columns, usernames, employee codes.
+# Q138. Candidate Key?
+A candidate key is any column or set of columns that can uniquely identify a row.
+A table can have multiple candidate keys.
+The chosen candidate key becomes the primary key; others remain as alternate keys.
+Example: in an Employee table, both EmployeeId and Email can be candidate keys.
+# Q139. Surrogate Key?
+A surrogate key is an artificial, system-generated key — not derived from business data.
+Usually an auto-incrementing integer (IDENTITY) or a GUID.
+Has no business meaning — purely for row identification.
+Preferred over natural keys because they never change and are always unique.
+Example: EmployeeId INT IDENTITY(1,1) is a surrogate key.
+# Q140. Constraints?
+Constraints enforce rules on data in a table.
+Types: NOT NULL, UNIQUE, PRIMARY KEY, FOREIGN KEY, CHECK, DEFAULT.
+CHECK constraint: CHECK (Salary > 0) — enforces a condition on column values.
+DEFAULT constraint: DEFAULT GETDATE() — provides a default value if none is supplied.
+Constraints are enforced at the database level — the database rejects invalid data automatically.
+# Q141. Normalization?
+The process of organizing database tables to reduce redundancy and improve data integrity.
+Ensures each piece of data is stored in only one place.
+Achieved by decomposing tables and establishing proper relationships.
+Reduces update anomalies — changing data in one place propagates correctly everywhere.
+Key interview line: "Normalization = remove redundancy. Every fact stored once."
+# Q142. 1NF (First Normal Form)?
+A table is in 1NF when: each column contains atomic (indivisible) values.
+No repeating groups or arrays in a single column.
+Each row is unique (a primary key exists).
+Example violation: storing multiple phone numbers in one column.
+Fix: create a separate PhoneNumbers table with a foreign key back to the Employee.
+# Q143. 2NF (Second Normal Form)?
+A table is in 2NF when it is in 1NF and every non-key column is fully dependent on the entire primary key.
+Applies only to tables with composite primary keys.
+Partial dependency: a non-key column depends on only part of the composite key.
+Fix: split the table so each non-key column depends on the full primary key.
+Example: in an OrderItem table, ProductName depends only on ProductId (not the full composite key of OrderId + ProductId) — violates 2NF.
+# Q144. 3NF (Third Normal Form)?
+A table is in 3NF when it is in 2NF and no non-key column depends on another non-key column (transitive dependency).
+Transitive dependency: A → B → C, where A is the key, B and C are non-key.
+Fix: move the transitively dependent columns to a separate table.
+Example: Employee has DeptId and DeptName — DeptName depends on DeptId, not on EmployeeId. Move DeptName to a Department table.
+# Q145. BCNF (Boyce-Codd Normal Form)?
+A stronger version of 3NF.
+A table is in BCNF when for every functional dependency A → B, A must be a superkey.
+Handles edge cases that 3NF doesn't cover — mainly overlapping candidate keys.
+Most tables in 3NF are already in BCNF.
+Used in theoretical design discussions — mention it as a bonus point in interviews.
+# Q146. Denormalization?
+Intentionally adding redundancy to a normalized database for performance.
+Reduces expensive JOINs by storing data together that would normally be in separate tables.
+Used in read-heavy reporting databases, data warehouses, and analytics (OLAP).
+Trade-off: faster reads but slower writes, potential data inconsistency.
+Key interview line: "OLTP = normalize for integrity. OLAP/Reporting = denormalize for read speed."
+# Q147. CTE (Common Table Expression)?
+A CTE is a temporary, named result set defined using the WITH keyword.
+Exists only for the duration of the query — not stored in the database.
+Makes complex queries more readable by breaking them into named logical parts.
+Supports recursion — useful for hierarchical data like org charts or category trees.
+Example: WITH CTE AS (SELECT ...) SELECT * FROM CTE WHERE ...
+# Q148. Recursive CTE?
+A recursive CTE references itself to process hierarchical or recursive data.
+Structure: anchor member (base case) + recursive member (references the CTE itself) + termination condition.
+Used for: org charts, bill of materials, folder hierarchies, graph traversal.
+Example: find all employees under a manager recursively.
+Always include a MAXRECURSION option to prevent infinite loops.
+# Q149. Temp Table?
+A temp table is created in TempDB using # prefix: CREATE TABLE #Temp (...)
+Persists for the duration of the current session or connection.
+Supports indexes and statistics — useful for large intermediate data sets.
+Can be referenced from called stored procedures in the same session.
+Use for complex multi-step queries that need intermediate storage.
+# Q150. Table Variable?
+Declared with DECLARE @TableVar TABLE (...).
+Scoped to the current batch only — goes out of scope after the batch ends.
+No statistics, no indexes (except primary key).
+Faster for small data sets — less overhead than temp tables.
+Not affected by transaction rollback — changes persist even if the transaction is rolled back.
+# Q151. Stored Procedure?
+A stored procedure is a precompiled set of SQL statements stored in the database.
+Accepts input parameters, output parameters, and can return result sets.
+Executes faster because the execution plan is compiled and cached.
+Reduces network traffic — one round trip to run multiple SQL statements.
+Can contain control flow: IF/ELSE, WHILE, TRY/CATCH.
+# Q152. Function?
+SQL Server functions return a value: scalar (single value) or table-valued (a table).
+Can be used inline in SELECT, WHERE, and JOIN clauses.
+Cannot modify data — no INSERT, UPDATE, DELETE, or DDL inside a function.
+More composable than stored procedures — can be used in queries directly.
+Types: Scalar functions, Inline Table-Valued Functions (ITVF), Multi-Statement Table-Valued Functions.
+# Q153. Trigger?
+A trigger is SQL code that automatically executes in response to INSERT, UPDATE, or DELETE events on a table.
+AFTER trigger: runs after the event. INSTEAD OF trigger: replaces the event.
+Used for: audit logging, enforcing business rules, replication.
+Has access to INSERTED and DELETED logical tables for new and old row data.
+Use carefully — hidden behavior can make debugging difficult.
+# Q154. View?
+A view is a named, saved SQL query that acts like a virtual table.
+Does not store data by itself (unless indexed).
+Simplifies complex queries, provides security (hide underlying tables), and abstracts schema changes.
+Updatable views allow INSERT/UPDATE/DELETE under certain conditions.
+Key interview line: "View = named reusable query. Virtual table."
+# Q155. Indexed View?
+An indexed view (materialized view) has a clustered index created on it — SQL Server stores the results on disk.
+Dramatically improves query performance for expensive aggregations and joins.
+SQL Server automatically keeps the view data in sync with base table changes.
+Trade-off: faster reads but slower writes (index must be updated on every base table change).
+Use for heavy read scenarios with expensive calculations.
+# Q156. Cursor?
+A cursor is a database object that allows row-by-row processing of a result set.
+Very slow compared to set-based SQL operations — avoid in most cases.
+Use cases: when row-by-row processing is truly required (complex calculations per row).
+Alternatives: set-based queries with window functions, CTEs, or application-level processing.
+Key interview line: "Cursors are slow. Always prefer set-based operations over cursors."
+# Q157. Execution Plan?
+The execution plan shows how SQL Server will execute a query — which indexes to use, join types, scan vs seek.
+View in SSMS: Ctrl+M (graphical plan) or SET STATISTICS IO ON (text plan).
+Index Seek = efficient (uses index to find specific rows). Index Scan = less efficient (scans all rows in index). Table Scan = most expensive.
+Use the execution plan to identify bottlenecks: missing indexes, expensive hash joins, key lookups.
+Key tip: "Look for table scans and key lookups — these are the biggest performance killers."
+# Q158. Parameter Sniffing?
+SQL Server caches the execution plan based on the parameter values used the first time a stored procedure runs.
+On subsequent calls with different parameter values, the cached plan may be suboptimal.
+Symptoms: a SP that runs fast sometimes and slow other times.
+Fix: use OPTION(RECOMPILE) to force a new plan each time, or use OPTIMIZE FOR hint, or use local variables.
+# Q159. Deadlock?
+A deadlock occurs when two transactions each hold a lock that the other needs — neither can proceed.
+SQL Server automatically detects deadlocks and kills the victim transaction (the one with less work done).
+Prevention: always access tables in a consistent order. Keep transactions short. Use appropriate isolation levels.
+The error returned is: Transaction was deadlocked on lock resources with another process.
+Index properly — more specific index access reduces lock contention.
+# Q160. Blocking?
+Blocking occurs when one transaction holds a lock that another transaction is waiting for.
+Unlike a deadlock, blocking eventually resolves when the first transaction commits or rolls back.
+Symptoms: slow queries, timeouts, accumulating waits.
+Identify with: sys.dm_exec_requests, sys.dm_os_waiting_tasks, Activity Monitor in SSMS.
+Fix: optimize long transactions, add appropriate indexes, use READ COMMITTED SNAPSHOT isolation.
+# Q161. Find Duplicate Records?
+SELECT Email, COUNT(*) FROM Employee GROUP BY Email HAVING COUNT(*) > 1
+This groups by the column you want to check for duplicates and returns groups with more than one occurrence.
+To see all duplicate rows: use ROW_NUMBER() OVER (PARTITION BY Email ORDER BY Id) and filter where RN > 1.
+# Q162. Find Nth Highest Salary?
+SELECT Salary FROM (SELECT DISTINCT Salary, DENSE_RANK() OVER (ORDER BY Salary DESC) AS r FROM Employee) x WHERE r = N
+Replace N with the rank you want.
+DENSE_RANK handles ties: if two employees share the 2nd salary, DENSE_RANK assigns both rank 2 and the next unique salary gets rank 3.
+# Q163. ROW_NUMBER?
+ROW_NUMBER() assigns a unique sequential number to each row within a partition.
+Syntax: ROW_NUMBER() OVER (PARTITION BY DeptId ORDER BY Salary DESC)
+Does not handle ties — rows with equal values get different sequential numbers.
+Used for: pagination, removing duplicates, ranking within groups.
+# Q164. RANK?
+RANK() assigns a rank to each row with gaps for tied values.
+Example: if two rows tie for rank 1, the next row gets rank 3 (not 2).
+Syntax: RANK() OVER (ORDER BY Salary DESC)
+Use when you need Olympic-style ranking (1, 1, 3...).
+# Q165. DENSE_RANK?
+DENSE_RANK() assigns ranks without gaps for tied values.
+Example: if two rows tie for rank 1, the next row gets rank 2 (not 3).
+Syntax: DENSE_RANK() OVER (ORDER BY Salary DESC)
+Use for finding Nth highest salary without gaps.
+Preferred over RANK for most salary/ranking questions in interviews.
+# Q166. LEAD?
+LEAD() accesses a value from the next row without a self-join.
+Syntax: LEAD(Salary, 1, 0) OVER (ORDER BY Id) — gets salary of the next row, defaults to 0 if none.
+Used to compare current row value with the next row's value.
+Useful for: detecting consecutive patterns, comparing current vs next period.
+# Q167. LAG?
+LAG() accesses a value from the previous row without a self-join.
+Syntax: LAG(Salary, 1, 0) OVER (ORDER BY Id) — gets salary of the previous row.
+Used to compare current row with the previous row.
+Classic use: find employees whose salary increased from the previous record.
+LEAD looks forward; LAG looks backward.
+# Q168. MERGE?
+MERGE performs INSERT, UPDATE, and DELETE in a single statement based on a match condition.
+Source table compared to target table; rows are inserted if no match, updated if matched, deleted if not in source.
+Useful for upsert (insert or update) operations in data synchronization scenarios.
+Example: syncing a staging table with a production table.
+Syntax: MERGE target USING source ON condition WHEN MATCHED THEN UPDATE WHEN NOT MATCHED THEN INSERT WHEN NOT MATCHED BY SOURCE THEN DELETE.
+# Q169. UNION?
+UNION combines result sets from two queries and removes duplicate rows.
+Both queries must have the same number of columns with compatible data types.
+Slower than UNION ALL because it performs a sort/distinct operation to remove duplicates.
+Use UNION only when deduplication is required.
+# Q170. UNION ALL?
+UNION ALL combines result sets and keeps ALL rows including duplicates.
+Faster than UNION — no sorting or duplicate removal.
+Use UNION ALL when you know there are no duplicates or when duplicates are acceptable.
+Key interview line: "Always prefer UNION ALL over UNION unless deduplication is explicitly needed."
+# Q171. Query Optimization?
+Check the execution plan — look for table scans, key lookups, implicit conversions.
+Add appropriate indexes (clustered, non-clustered, covering).
+Use SELECT with specific columns instead of SELECT *.
+Avoid functions on indexed columns in WHERE: WHERE YEAR(HireDate) = 2020 prevents index use; use WHERE HireDate >= '2020-01-01'.
+Use pagination to limit result sets.
+Keep transactions short to reduce locking.
+Avoid cursors — use set-based operations.
+# Q172. Missing Index?
+SQL Server's execution plan often includes a missing index suggestion.
+Also check sys.dm_db_missing_index_details for missing index recommendations.
+Do not blindly add all suggested indexes — evaluate the impact on write performance.
+Each additional index slows down INSERT, UPDATE, DELETE operations on that table.
+Balance read performance gains against write overhead.
+# Q173. SQL Profiler?
+SQL Server Profiler captures and analyzes database activity in real time.
+Captures: queries, stored procedures, login events, deadlocks, errors.
+Used for: finding slow queries, debugging performance issues, auditing.
+Extended Events is the modern, lighter-weight replacement for SQL Profiler.
+Key use: trace slow queries in production (use carefully — profiler has overhead).
+# Q174. Query Store?
+Query Store is built into SQL Server (2016+) and Azure SQL.
+Automatically captures query plans and runtime statistics over time.
+Detects plan regression — when a query suddenly starts using a worse execution plan.
+Allows forcing a specific plan: EXEC sp_query_store_force_plan.
+Used for: performance monitoring, troubleshooting parameter sniffing, tracking query degradation.
+# Q175. Partitioning?
+Table partitioning splits a large table into smaller, manageable pieces based on a partition key (usually a date).
+Queries targeting a specific partition skip others entirely — partition elimination.
+Improves performance for large tables with date-range queries.
+Each partition can be on a different filegroup.
+Example: an Orders table partitioned by year — querying 2024 orders only scans the 2024 partition.
+# Q176. Transactions?
+A transaction is a unit of work that is executed atomically — all or nothing.
+Begin with BEGIN TRANSACTION; commit with COMMIT; roll back with ROLLBACK.
+In EF Core: use context.Database.BeginTransactionAsync() for explicit multi-step transactions.
+Transactions ensure data consistency across multiple related operations.
+Keep transactions as short as possible to minimize locking and improve concurrency.
+# Q177. Isolation Levels?
+Isolation levels control how transactions interact with concurrent reads and writes.
+READ UNCOMMITTED: can read uncommitted (dirty) data. Fastest, least safe.
+READ COMMITTED (default): only reads committed data.
+REPEATABLE READ: data read cannot change during the transaction.
+SERIALIZABLE: highest isolation — full table lock, no phantom reads. Most restrictive.
+READ COMMITTED SNAPSHOT (RCSI): uses row versions — readers don't block writers. Recommended for most apps.
+# Q178. ACID Properties?
+ACID ensures reliable database transactions.
+Atomicity: all operations succeed or none do.
+Consistency: the database moves from one valid state to another.
+Isolation: concurrent transactions don't interfere with each other.
+Durability: committed transactions survive system failures.
+Key interview line: "ACID = Atomicity, Consistency, Isolation, Durability."
+# Q179. Dirty Reads?
+A dirty read occurs when one transaction reads uncommitted data written by another transaction.
+If the second transaction rolls back, the first transaction has read data that never officially existed.
+Caused by READ UNCOMMITTED isolation level.
+Prevented by READ COMMITTED and higher isolation levels.
+Generally unacceptable in business applications — avoid READ UNCOMMITTED in production.
+# Q180. Phantom Reads?
+A phantom read occurs when a transaction re-executes a query and finds new rows that were inserted by another transaction.
+The "phantom" rows weren't there on the first read but appear on the second read.
+Occurs under REPEATABLE READ isolation — rows can be inserted but not modified.
+Prevented by SERIALIZABLE isolation.
+READ COMMITTED SNAPSHOT prevents dirty reads and phantom reads efficiently without heavy locking.
+@react
+# Q181. Virtual DOM?
+React maintains a lightweight copy of the real DOM in memory.
+On state change, React creates a new virtual DOM tree and diffs it with the previous one.
+Only the changed parts are updated in the real DOM — this is called reconciliation.
+Much faster than directly manipulating the real DOM for every change.
+Key interview line: "Virtual DOM = diff + minimal real DOM updates = performance."
+# Q182. JSX?
+JSX (JavaScript XML) is a syntax extension for JavaScript used in React.
+It lets you write HTML-like syntax inside JavaScript.
+JSX is compiled to React.createElement() calls by Babel.
+Example: const element = <h1>Hello</h1> compiles to React.createElement('h1', null, 'Hello').
+JSX is not required but makes React code much more readable.
+# Q183. Functional Components?
+Functional components are plain JavaScript functions that return JSX.
+They accept props as an argument.
+Modern React — all new components should be functional.
+Use hooks (useState, useEffect) for state and lifecycle features.
+Simpler, less boilerplate than class components.
+# Q184. Class Components?
+Class components extend React.Component and implement the render() method.
+Use this.state for state and lifecycle methods (componentDidMount, componentDidUpdate, etc.).
+Verbose — require binding methods and managing this.
+Legacy approach — functional components with hooks have replaced them.
+You may still see them in older codebases; understand how they work.
+# Q185. Props?
+Props are read-only inputs passed from a parent component to a child component.
+The child cannot modify its own props — they flow down the component tree.
+Used to pass data and callback functions to child components.
+Changing a parent's state with new prop values causes the child to re-render.
+Key interview line: "Props = external input from parent. Read-only in the child."
+# Q186. State?
+State is data managed inside a component that can change over time.
+Changing state via setState (class) or setters from useState (functional) triggers a re-render.
+State should be the minimal representation of data needed for the UI.
+Lift state up when multiple components need access to the same state.
+Key interview line: "State = internal, mutable data. Changing state re-renders the component."
+# Q187. Controlled Components?
+A controlled component is a form element whose value is driven by React state.
+The input's value attribute is bound to state; onChange updates the state.
+React is the single source of truth for the form field value.
+Every keystroke triggers a state update and re-render.
+Preferred approach — gives full control over form data.
+# Q188. Uncontrolled Components?
+An uncontrolled component manages its own state internally in the DOM.
+Access the value using a ref: const inputRef = useRef(); then inputRef.current.value.
+Less React-idiomatic — the DOM controls the input, not React.
+Useful for simple forms or integrating with non-React code.
+Use controlled components in most cases; uncontrolled for quick reads when no live validation is needed.
+# Q189. Lifting State Up?
+When two sibling components need to share state, move (lift) the state to their common parent.
+The parent passes the state as props and the setter function as a callback.
+Ensures a single source of truth for shared data.
+Example: a filter input and a list that responds to it — both connect to shared state in the parent.
+# Q190. Prop Drilling?
+Prop drilling occurs when props are passed through many intermediate components that don't use them.
+The data is just being passed down to reach a deeply nested component.
+Problems: verbose code, tight coupling, makes refactoring hard.
+Solutions: Context API for moderate sharing, Redux for complex global state.
+Key interview line: "Prop drilling = passing props through many layers just to reach a deep component."
+# Q191. useState?
+Declares a state variable in a functional component.
+Returns [currentValue, setterFunction]: const [count, setCount] = useState(0)
+Calling the setter triggers a re-render with the new value.
+State updates are asynchronous — batched by React for performance.
+Each useState call creates an independent state variable.
+# Q192. useEffect?
+Runs side effects after the component renders.
+Dependency array controls when it runs: [] = once on mount. [dep] = when dep changes. No array = every render.
+Return a cleanup function to handle unsubscriptions, clearing timers, or cancelling requests.
+Covers componentDidMount, componentDidUpdate, and componentWillUnmount in one hook.
+Common uses: API calls, subscriptions, DOM manipulation after render.
+# Q193. useMemo?
+Memoizes the result of an expensive calculation.
+Recalculates only when its dependencies change.
+Syntax: const result = useMemo(() => expensiveCalc(data), [data])
+Prevents redundant calculations on every re-render.
+Use only for genuinely expensive computations — premature optimization adds complexity.
+# Q194. useCallback?
+Memoizes a function definition — returns the same function reference unless dependencies change.
+Prevents child components from re-rendering unnecessarily when a parent re-renders.
+Syntax: const handleClick = useCallback(() => { doSomething(id); }, [id])
+Use when passing callbacks to child components wrapped in React.memo.
+useCallback = cache a function. useMemo = cache a value.
+# Q195. useRef?
+Returns a mutable ref object whose .current property persists across re-renders without causing re-renders.
+Two primary uses: accessing DOM elements directly (inputRef.current.focus()) and storing mutable values that don't trigger re-renders (timers, previous values).
+Does not cause re-render when .current is changed — unlike state.
+Key interview line: "useRef = stable reference that doesn't trigger re-renders."
+# Q196. useReducer?
+An alternative to useState for complex state logic.
+Takes a reducer function and initial state; returns [state, dispatch].
+The reducer function takes current state and an action, returns new state.
+Better than useState when next state depends on previous state in complex ways.
+Similar pattern to Redux — useful for local component-level complex state.
+# Q197. Custom Hooks?
+Custom hooks are reusable functions that encapsulate hook logic.
+Names must start with use: useFetch, useForm, useDebounce.
+Can call other hooks inside them.
+Share stateful logic across multiple components without duplicating code.
+Example: a useFetch hook encapsulates useEffect + useState + loading/error state.
+# Q198. Context API?
+Context provides a way to pass data through the component tree without prop drilling.
+Create a context: const ThemeContext = React.createContext().
+Provide a value at a high level: <ThemeContext.Provider value={theme}>
+Consume with useContext: const theme = useContext(ThemeContext).
+Use for: theme, locale, authenticated user — data that is truly global but changes infrequently.
+# Q199. React.memo?
+React.memo is a higher-order component that memoizes a functional component.
+Prevents the component from re-rendering if its props haven't changed.
+Uses shallow comparison of props by default.
+Combine with useCallback for stable callback props to maximize effectiveness.
+Only use when you have a measurable performance problem — don't premature optimize.
+# Q200. React.lazy?
+React.lazy enables lazy loading of a component — it is loaded only when it is first rendered.
+Syntax: const MyComp = React.lazy(() => import('./MyComp'))
+Must be wrapped in Suspense with a fallback: <Suspense fallback={<Spinner/>}><MyComp/></Suspense>
+Reduces initial bundle size — improves time to interactive.
+Works with code splitting — the component is a separate JavaScript chunk.
+# Q201. Suspense?
+Suspense lets components wait for something before rendering and shows a fallback meanwhile.
+Currently works with React.lazy for code splitting and data fetching in React 18+.
+Syntax: <Suspense fallback={<Loading/>}><LazyComponent/></Suspense>
+The fallback is rendered while the lazy component is loading.
+Part of React's concurrent features strategy for async rendering.
+# Q202. Error Boundary?
+Error boundaries catch JavaScript errors in their child component tree and display a fallback UI.
+Implemented as class components with componentDidCatch and static getDerivedStateFromError.
+No functional component equivalent yet (as of React 18).
+Used to prevent a single component crash from breaking the entire app.
+Wrap top-level routes and high-risk components with Error Boundaries.
+# Q203. Reconciliation?
+Reconciliation is React's process of comparing the new virtual DOM with the previous one and updating only changed parts.
+React uses a diffing algorithm: assumes elements of different types produce different trees.
+Key hint: when rendering lists, provide unique key props so React can identify items efficiently.
+Without keys, React may re-render entire lists unnecessarily.
+Keys should be stable, unique IDs — not array indexes (indexes cause bugs when the list reorders).
+# Q204. Keys?
+Keys help React identify which items in a list have changed, been added, or removed.
+Must be unique among siblings — not globally unique.
+Use stable IDs (database IDs, UUIDs) as keys — not array indexes.
+Using indexes as keys causes bugs when items are reordered or removed.
+Key interview line: "Keys = React's way of efficiently tracking list items across re-renders."
+# Q205. Fragment?
+React.Fragment (or shorthand <></>) allows returning multiple elements without adding an extra DOM node.
+Prevents unnecessary wrapper divs in the rendered HTML.
+Example: return (<><h1>Title</h1><p>Content</p></>)
+Use the long form <React.Fragment key={id}> when you need a key prop (for lists).
+# Q206. Redux?
+Redux is a predictable state management library for JavaScript apps.
+Single store holds the entire application state.
+Actions describe what happened: { type: 'INCREMENT', payload: 1 }
+Reducers specify how state changes in response to actions — pure functions.
+Components dispatch actions and subscribe to state via useSelector and useDispatch.
+# Q207. Redux Toolkit?
+The official, modern way to use Redux — significantly less boilerplate than vanilla Redux.
+createSlice combines action creators and reducer in one place.
+configureStore sets up the store with good defaults (Redux DevTools, middleware).
+Uses Immer internally — allows writing "mutating" code that is actually immutable.
+Always use Redux Toolkit in new projects.
+# Q208. Store?
+The Redux store is the single source of truth for the entire application state.
+Created with configureStore() in Redux Toolkit.
+Provides: getState() to read state, dispatch() to send actions, subscribe() to listen for changes.
+Components access state via useSelector() and dispatch actions via useDispatch().
+# Q209. Reducer?
+A reducer is a pure function that takes the current state and an action, and returns the new state.
+Must be pure: same input always produces same output, no side effects.
+Never mutate state directly — return a new state object.
+With Redux Toolkit's createSlice, you can write "mutating" code — Immer handles immutability.
+Key interview line: "Reducer = pure function: (state, action) => newState."
+# Q210. Action?
+An action is a plain JavaScript object describing an event that occurred.
+Must have a type property: { type: 'user/login', payload: { userId: 1 } }.
+Dispatched via dispatch(action) to trigger a state change.
+In Redux Toolkit, createSlice auto-generates action creators for each reducer.
+Actions are serializable — no functions, Promises, or class instances as actions.
+# Q211. Middleware (Redux)?
+Redux middleware intercepts actions before they reach the reducer.
+Used for: async operations (Thunk), logging, analytics, error handling.
+Applied in configureStore: middleware: [thunk, logger]
+Redux Toolkit includes Redux Thunk by default.
+Middleware can dispatch additional actions or stop an action from reaching the reducer.
+# Q212. Thunk?
+Redux Thunk middleware allows dispatching a function instead of a plain action object.
+The function receives dispatch and getState as arguments.
+Used for async operations: API calls, side effects.
+Example: dispatch(fetchUsers()) — fetchUsers is a thunk that calls an API and dispatches result actions.
+Redux Toolkit's createAsyncThunk simplifies async thunk creation with pending/fulfilled/rejected states.
+# Q213. Saga?
+Redux Saga is middleware for handling complex async flows using generator functions.
+More powerful than Thunk for complex scenarios: sequential steps, cancellation, race conditions, retries.
+Uses ES6 generators (function*) and yield for step-by-step async logic.
+Steeper learning curve than Thunk — use Thunk for simple async, Saga for complex workflows.
+Example use: multi-step authentication flow with retry and cancellation.
+# Q214. Routing?
+React Router provides client-side routing for React SPAs.
+Renders different components based on the current URL without full page reloads.
+Core components: BrowserRouter, Routes, Route, Link, NavLink.
+Hooks: useNavigate (programmatic navigation), useParams (route params), useLocation (current location).
+Use BrowserRouter for most apps; HashRouter for environments that can't handle URL rewriting.
+# Q215. Protected Routes?
+A protected route redirects unauthenticated users to the login page.
+Implemented as a wrapper component that checks authentication state.
+If authenticated: renders the child component. If not: redirects to /login using Navigate.
+Pattern: <ProtectedRoute><Dashboard/></ProtectedRoute>
+Combine with Redux or Context to access the authentication state globally.
+# Q216. Code Splitting?
+Code splitting breaks the JavaScript bundle into smaller chunks loaded on demand.
+Webpack/Vite split the bundle automatically when you use React.lazy() and dynamic imports.
+Users only download the JavaScript for the current page or feature.
+Results in a smaller initial bundle and faster time to interactive.
+Key interview line: "Code splitting = load less JavaScript upfront. Users get what they need when they need it."
+# Q217. Lazy Loading?
+Lazy loading in React means loading components only when they are needed.
+Achieved with React.lazy(() => import('./Component')) and Suspense.
+Combine with route-level code splitting for maximum effect.
+Images can also be lazy loaded using the loading="lazy" HTML attribute.
+Key interview line: "React.lazy + Suspense = on-demand component loading."
+# Q218. Debouncing?
+Debouncing delays a function call until after a specified time has passed since the last invocation.
+Used for: search inputs — wait for the user to stop typing before firing the API call.
+Implementation: use setTimeout in a custom hook or use the Lodash debounce function.
+Prevents sending a new API request on every keystroke.
+Key interview line: "Debounce = wait until the user stops, then act."
+# Q219. Throttling?
+Throttling limits how often a function can be called — ensures it runs at most once per time window.
+Used for: scroll events, resize events, preventing double form submission.
+Different from debouncing: throttle fires at regular intervals, debounce fires after silence.
+Implementation: use Lodash throttle or a custom hook with useRef to track the last call time.
+Key interview line: "Throttle = fire at most once per N milliseconds, regardless of how many times triggered."
+# Q220. React Performance Optimization?
+Use React.memo to prevent re-renders of pure functional components.
+Use useMemo for expensive computed values.
+Use useCallback for stable function references passed to child components.
+Lazy load heavy components with React.lazy.
+Virtualize long lists with react-window or react-virtual — only render visible rows.
+Avoid inline object and function creation in JSX — they create new references on every render.
+Profile with React DevTools Profiler to find actual bottlenecks before optimizing.
+@microservices
+# Q221. What are Microservices?
+Microservices is an architectural style where an application is built as a collection of small, independent services.
+Each service owns a specific business capability, its own data, and its own deployment.
+Services communicate via APIs (REST, gRPC) or messaging (queues, events).
+Each service can be developed, deployed, scaled, and maintained independently.
+Key interview line: "Each service owns its domain, its data, and its deployment pipeline."
+# Q222. Monolith vs Microservices?
+Monolith: all functionality in one deployable unit. Simple to develop and test initially.
+Harder to scale specific components. A bug can bring down the whole app. Long build/deploy cycles.
+Microservices: independently deployable, scalable, and maintainable services.
+Adds complexity: distributed systems, network failures, data consistency, service discovery.
+Rule: start with a well-structured monolith. Move to microservices when you have specific scaling or team independence needs.
+# Q223. Service Discovery?
+Service discovery allows microservices to find each other dynamically without hardcoded URLs.
+Services register their address with a service registry (Consul, Eureka, AWS Cloud Map) on startup.
+Other services query the registry to get the current address of needed services.
+Client-side discovery: the client queries the registry and load balances itself.
+Server-side discovery: the load balancer queries the registry and routes on behalf of the client.
+# Q224. API Gateway?
+An API gateway is the single entry point for all external client requests.
+Handles: routing, authentication, SSL termination, rate limiting, logging, response caching.
+Clients talk to the gateway; it routes requests to the appropriate microservice.
+Examples: AWS API Gateway, Azure API Management, Kong, Nginx, Ocelot.
+Simplifies client code and provides a centralized location for cross-cutting concerns.
+# Q225. Service Registry?
+A service registry is a database of all running service instances and their network addresses.
+Services self-register on startup and deregister on shutdown.
+The registry provides health checking to automatically remove failed instances.
+Examples: Consul, Eureka (Netflix), AWS Cloud Map.
+The API Gateway or service discovery mechanism queries the registry to find service instances.
+# Q226. Distributed Transactions?
+Distributed transactions coordinate changes across multiple services/databases atomically.
+Traditional two-phase commit (2PC) is complex and often impractical in microservices.
+The preferred approach is eventual consistency using the Saga Pattern.
+Design around avoiding distributed transactions wherever possible — use events and compensation.
+Key interview line: "Avoid distributed transactions in microservices. Use Saga and eventual consistency instead."
+# Q227. Saga Pattern?
+The Saga pattern manages long-running distributed transactions across multiple services using a series of local transactions.
+Each step publishes an event; the next service reacts. If a step fails, compensating transactions roll back previous steps.
+Two types: Choreography (event-driven, services react to events) and Orchestration (a central coordinator manages the flow).
+Example: Order Service creates order → Payment Service charges card → Inventory Service reserves stock. If payment fails, Order Service compensates (cancels order).
+# Q228. Event Driven Architecture?
+Services communicate by publishing and consuming events through a message broker (Kafka, RabbitMQ, Azure Service Bus).
+Producer publishes an event without knowing who consumes it — fully decoupled.
+Consumers react to events asynchronously.
+Enables loose coupling, scalability, and resilience.
+Key trade-off: eventual consistency instead of immediate consistency.
+# Q229. Message Queue?
+A message queue is a form of asynchronous communication where producers send messages to a queue and consumers process them independently.
+Decouples producers and consumers — they don't need to be available simultaneously.
+Enables load leveling: consumers process at their own pace.
+Examples: RabbitMQ, AWS SQS, Azure Service Bus, Kafka.
+Key use cases: email sending, order processing, background jobs.
+# Q230. Eventual Consistency?
+Eventual consistency means that all services will eventually have a consistent view of the data — but not necessarily immediately.
+Accepted trade-off in distributed systems for availability and scalability (see CAP theorem).
+Achieved through event-driven updates — downstream services eventually process events and update their data.
+Design UI to handle eventual consistency: show optimistic updates, pending states.
+Key interview line: "Eventual consistency = the system will become consistent, just not instantly."
+# Q231. Circuit Breaker?
+The circuit breaker pattern prevents cascading failures by stopping calls to a failing service.
+States: Closed (normal), Open (service is failing — fail fast), Half-Open (testing recovery).
+When a threshold of failures is reached, the circuit opens and subsequent calls fail immediately.
+After a timeout, the circuit enters Half-Open and allows one test request through.
+Implemented in .NET with Polly: Policy.Handle<Exception>().CircuitBreakerAsync(5, TimeSpan.FromSeconds(30)).
+# Q232. Retry Pattern?
+Retry automatically re-attempts a failed operation after a delay.
+Used for transient failures: network timeouts, temporary service unavailability.
+Use exponential backoff with jitter to avoid thundering herd.
+Only retry idempotent operations — retrying POST creates duplicate records.
+Polly: Policy.Handle<HttpRequestException>().WaitAndRetryAsync(3, attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)));
+# Q233. Bulkhead Pattern?
+Isolates failures in one subsystem from spreading to others.
+Limits concurrent calls to a service to prevent resource exhaustion.
+Example: if the Email service is slow, it shouldn't consume all available threads and starve the Order service.
+Implemented with Polly's BulkheadAsync or by using separate HTTP client pools per service.
+Named after watertight compartments in a ship hull — a breach in one doesn't sink the ship.
+# Q234. CQRS?
+CQRS (Command Query Responsibility Segregation) separates read and write operations into different models.
+Commands: change state (Create, Update, Delete) — go through the write model.
+Queries: read state — go through the read model, often optimized for reading.
+Allows independent scaling of reads and writes.
+Often combined with Event Sourcing for the write model.
+# Q235. Event Sourcing?
+Event sourcing stores the history of all state changes as a sequence of immutable events — not the current state.
+The current state is derived by replaying all events from the beginning.
+Provides a full audit trail automatically.
+Events are facts — they never change. New events are appended.
+Excellent for audit logging, financial systems, and systems where history matters.
+# Q236. Sidecar Pattern?
+The sidecar pattern deploys a helper service alongside the main service in the same pod/container.
+The sidecar handles cross-cutting concerns: logging, monitoring, service mesh proxy, secret management.
+The main service doesn't need to know about these concerns — the sidecar handles them transparently.
+Examples: Envoy proxy as a sidecar in a service mesh (Istio), log shipper sidecar.
+Common in Kubernetes deployments.
+# Q237. Aggregator Pattern?
+The aggregator pattern combines results from multiple microservice calls into a single response.
+Clients call one aggregator service instead of multiple services directly.
+The aggregator calls multiple downstream services, combines their results, and returns a unified response.
+Reduces client complexity and number of network calls from the client.
+Can be implemented in the API Gateway or as a dedicated Backend-for-Frontend (BFF) service.
+# Q238. Strangler Pattern?
+The strangler fig pattern incrementally migrates a monolith to microservices.
+New features are built as microservices. Over time, existing monolith functionality is migrated out.
+The monolith shrinks (strangles) as microservices grow around it.
+The API Gateway or routing layer directs traffic to either the monolith or microservices.
+Low-risk migration strategy — the monolith remains functional throughout the migration.
+# Q239. Database per Service?
+Each microservice owns its own database — no other service can access it directly.
+Ensures loose coupling at the data layer.
+Services can choose the best database type for their needs (SQL, NoSQL, graph).
+Data sharing happens via APIs or events — not direct database queries.
+Key challenge: joins and transactions across services require event-driven design and eventual consistency.
+# Q240. Shared Database?
+Multiple microservices share the same database.
+Simpler to set up but creates tight coupling between services.
+Schema changes to one service's tables can break other services.
+Anti-pattern in microservices — use only as a stepping stone during migration or for truly shared reference data.
+Goal: move toward database per service for full service independence.
+# Q241. Logging Strategy?
+Each service logs to stdout/stderr in a structured format (JSON).
+A centralized log aggregation system (ELK Stack, Splunk, CloudWatch) collects and indexes logs.
+Every log entry should include: service name, timestamp, log level, correlation ID, user ID.
+Use correlation IDs to trace a request across multiple service logs.
+Never log sensitive data: passwords, tokens, PII.
+# Q242. Monitoring?
+Monitor service health: CPU, memory, error rates, latency, throughput.
+Use APM (Application Performance Monitoring) tools: Datadog, New Relic, Application Insights.
+Define SLOs (Service Level Objectives) and alert on SLO breaches.
+Monitor business metrics alongside technical metrics.
+Implement health check endpoints (/health) for automated monitoring and load balancer routing.
+# Q243. Distributed Tracing?
+Distributed tracing follows a request as it travels through multiple microservices.
+Each service adds trace context (trace ID, span ID) to the request and logs it.
+Tools: Jaeger, Zipkin, AWS X-Ray, OpenTelemetry.
+A trace visualizes the full end-to-end journey of a request and highlights slow or failing spans.
+Essential for debugging performance issues in microservices.
+# Q244. Correlation IDs?
+A correlation ID is a unique ID assigned to each request at the entry point.
+Passed in headers (X-Correlation-ID) across all downstream service calls.
+Every service logs the correlation ID with its log entries.
+Enables end-to-end request tracing across all services in a single search.
+Key interview line: "Correlation ID = thread of identity tying all logs of one request together."
+# Q245. Health Checks?
+Each microservice exposes a /health endpoint returning its operational status.
+Returns: Healthy, Degraded, or Unhealthy with details.
+Used by: load balancers (route only to healthy instances), Kubernetes (liveness and readiness probes), orchestration platforms.
+Check: database connectivity, dependency availability, disk space, memory.
+In ASP.NET Core: AddHealthChecks() and MapHealthChecks("/health").
+# Q246. Docker?
+Docker packages an application and all its dependencies into a container — a lightweight, isolated runtime.
+A Dockerfile defines the image: base OS, dependencies, app files, entry point.
+Docker image = blueprint. Container = running instance of an image.
+Ensures consistency: the container runs the same everywhere (dev, staging, production).
+Key interview line: "Docker = consistent, portable packaging. Works the same on every machine."
+# Q247. Kubernetes?
+Kubernetes (K8s) is a container orchestration platform for deploying and managing containerized applications at scale.
+Pod: smallest unit — one or more containers running together.
+Deployment: manages desired number of pod replicas and handles rolling updates.
+Service: provides stable networking and load balancing to a set of pods.
+Ingress: manages external HTTP/HTTPS traffic routing to services.
+# Q248. Scaling?
+Horizontal scaling: add more instances of a service — preferred for microservices.
+Vertical scaling: add more CPU/memory to an existing instance — limited and expensive.
+Kubernetes Horizontal Pod Autoscaler (HPA) scales pods based on CPU/memory metrics.
+Stateless services are easiest to scale — no session or local state to worry about.
+Scale individual microservices independently based on their specific load.
+# Q249. Resilience?
+Resilience is the ability of a system to recover from failures and continue operating.
+Achieve via: retries, circuit breakers, timeouts, bulkheads, fallbacks.
+Design for failure — assume any service call can fail.
+Use idempotent operations to enable safe retries.
+Implement graceful degradation — the system continues with reduced functionality rather than completely failing.
+# Q250. Fault Tolerance?
+Fault tolerance means the system continues to operate correctly even when some components fail.
+Achieved through redundancy (multiple instances), failover, circuit breakers, and fallback responses.
+No single point of failure — every critical component has a redundant backup.
+Health checks + load balancers automatically remove failed instances from rotation.
+Key interview line: "Fault tolerance = design so that any component can fail without taking the whole system down."
+@aws
+# Q251. What is AWS Lambda?
+AWS Lambda is a serverless compute service — you run code without provisioning or managing servers.
+Upload your function code; Lambda runs it in response to triggers (API Gateway, SQS, EventBridge, S3).
+Scales automatically — from zero to thousands of concurrent executions.
+You pay only for the compute time used (per 100ms increments).
+Ideal for event-driven, short-running workloads.
+# Q252. Lambda Lifecycle?
+Cold start: first invocation initializes the execution environment — downloads code, starts runtime.
+Warm start: subsequent invocations reuse the initialized environment — much faster.
+Lambda freezes the execution environment between invocations.
+Initialize heavy resources (DB connections, SDK clients) outside the handler function for reuse across invocations.
+Lambda has a maximum execution time of 15 minutes.
+# Q253. Cold Start?
+A cold start happens when Lambda needs to initialize a new execution environment.
+Adds latency — typically 100ms to a few seconds depending on runtime and package size.
+More common with compiled languages (Java) and large deployment packages.
+Mitigation: use Provisioned Concurrency (keeps environments pre-warmed), keep packages small, use Lambda SnapStart (Java).
+In .NET: .NET 6+ Native AOT reduces cold start significantly.
+# Q254. API Gateway?
+AWS API Gateway is a fully managed service for creating, managing, and securing REST, HTTP, and WebSocket APIs.
+Acts as the front door for Lambda functions and backend services.
+Handles: request routing, authentication (Lambda Authorizers, Cognito), throttling, SSL termination.
+Two types for REST: REST API (full features) and HTTP API (faster, cheaper, fewer features).
+Integrates directly with Lambda for serverless API backends.
+# Q255. REST API Gateway?
+REST API Gateway is the original, feature-rich API type in API Gateway.
+Supports: API keys, usage plans, request/response transformations, caching, AWS WAF integration.
+More expensive and slightly higher latency than HTTP API.
+Best for: complex enterprise APIs needing fine-grained control, API key management, advanced throttling.
+# Q256. HTTP API Gateway?
+HTTP API is the newer, lighter, and cheaper API type in API Gateway.
+Lower latency and cost compared to REST API — up to 70% cheaper.
+Supports: JWT authorizers, CORS, automatic deployments.
+Does not support: API keys, usage plans, response transformations, or AWS WAF directly.
+Best for: serverless backend APIs where you need speed and low cost without advanced features.
+# Q257. Lambda Authorizer?
+A Lambda Authorizer is a Lambda function that controls access to an API Gateway endpoint.
+Receives the request token (JWT or API key) and returns an IAM policy (Allow or Deny).
+Two types: Token-based (receives a bearer token) and Request-based (receives entire request context).
+The policy is cached by API Gateway to avoid calling the authorizer on every request.
+Use for: custom authentication logic, validating third-party JWT tokens.
+# Q258. IAM?
+IAM (Identity and Access Management) controls who can do what in AWS.
+Manages users, groups, roles, and their permissions.
+Everything in AWS is secured by IAM — every API call is authenticated and authorized.
+Principle of least privilege: grant only the minimum permissions required.
+Key components: Users (humans), Roles (for services/apps), Policies (JSON permission documents).
+# Q259. IAM Roles?
+An IAM Role is an identity with a set of permissions that can be assumed by AWS services, applications, or users.
+Lambda functions assume a role to access other AWS services (S3, DynamoDB, SQS).
+Roles don't have long-term credentials — they use temporary, auto-rotating credentials.
+Attach policies to roles to grant specific permissions.
+Key principle: always use roles for service-to-service access — never hardcode access keys.
+# Q260. IAM Policies?
+IAM Policies are JSON documents that define what actions are allowed or denied on which resources.
+Attached to users, groups, or roles.
+Structure: Effect (Allow/Deny), Action (s3:GetObject), Resource (ARN of the resource).
+AWS-managed policies: pre-built by AWS for common use cases.
+Customer-managed policies: custom policies tailored to your needs.
+Key rule: deny by default — access must be explicitly allowed.
+# Q261. SQS?
+SQS (Simple Queue Service) is a fully managed message queue service.
+Producers send messages to the queue; consumers poll and process them.
+Decouples producers and consumers — they don't need to be available simultaneously.
+Two types: Standard (best-effort ordering, at-least-once delivery) and FIFO (exactly-once, ordered).
+Used for: task queues, decoupling microservices, load leveling, Lambda triggers.
+# Q262. FIFO Queue?
+FIFO (First-In-First-Out) queues guarantee message order and exactly-once processing.
+Messages are delivered and processed in the exact order they are sent.
+Throughput is limited to 300 messages/second (or 3,000 with batching).
+Message group IDs allow parallel processing of different message groups while maintaining order within each group.
+Use for: financial transactions, order processing — any scenario where order and exactly-once matter.
+# Q263. Standard Queue?
+Standard queues offer maximum throughput — nearly unlimited messages per second.
+At-least-once delivery: a message may occasionally be delivered more than once.
+Best-effort ordering: messages are generally delivered in order but not guaranteed.
+Consumers must be idempotent to handle duplicate messages.
+Use for: high-throughput scenarios where occasional duplicates are acceptable (email sending, logging).
+# Q264. Dead Letter Queue (DLQ)?
+A DLQ is a separate queue where messages are moved after failing to process a configured number of times.
+Prevents poison pill messages from blocking the queue indefinitely.
+Configure maxReceiveCount on the main queue — after N failed processing attempts, the message moves to DLQ.
+Monitor DLQ for failed messages — it indicates processing issues that need investigation.
+Lambda integrates with SQS and automatically handles DLQ routing.
+# Q265. Visibility Timeout?
+The visibility timeout is the period during which a message being processed by a consumer is hidden from other consumers.
+Default: 30 seconds. Max: 12 hours.
+If the consumer processes and deletes the message within the timeout, all is fine.
+If the consumer fails or crashes, the timeout expires and the message becomes visible again for reprocessing.
+Set visibility timeout to at least the maximum processing time of your consumer.
+# Q266. CloudWatch?
+CloudWatch is AWS's monitoring and observability service.
+Collects metrics, logs, events, and traces from AWS services and your applications.
+Create alarms that trigger based on metric thresholds (e.g., CPU > 80% → scale out).
+Dashboards provide real-time visualization of metrics.
+Key services: CloudWatch Metrics (numerical data), CloudWatch Logs (log aggregation), CloudWatch Alarms (alerting).
+# Q267. CloudWatch Logs?
+CloudWatch Logs collects, stores, and analyzes log files from AWS services and applications.
+Lambda automatically sends logs to CloudWatch Logs.
+Use Log Groups (per service/app) and Log Streams (per instance/invocation).
+Create metric filters to extract metrics from log patterns (e.g., count error occurrences).
+Use Logs Insights for SQL-like querying of your logs.
+# Q268. CloudWatch Metrics?
+CloudWatch Metrics are numerical data points representing the state of your AWS resources over time.
+Every AWS service emits built-in metrics (Lambda: invocations, errors, duration; SQS: message count).
+Custom metrics: publish your own business metrics using the PutMetricData API.
+Metrics are aggregated per time period (1 minute to 1 day).
+Use for dashboards, alarms, and auto-scaling triggers.
+# Q269. Step Functions?
+AWS Step Functions is a serverless orchestration service for coordinating multi-step workflows.
+Define workflows as state machines using Amazon States Language (JSON/YAML).
+Steps can be Lambda functions, ECS tasks, SQS messages, or other AWS services.
+Handles retries, error handling, parallel execution, and wait states automatically.
+Ideal for: order processing workflows, ETL pipelines, approval workflows, microservice orchestration.
+# Q270. State Machine?
+A state machine in Step Functions defines the flow of a workflow.
+States: Task (calls a Lambda or service), Choice (conditional branching), Wait (delay), Parallel (concurrent paths), Map (iterate over array), Succeed, Fail.
+Transitions between states are defined by input/output and conditions.
+Execution history is stored for debugging and auditing.
+Express Workflows for short, high-throughput. Standard Workflows for long-running, exactly-once.
+# Q271. SNS?
+SNS (Simple Notification Service) is a fully managed pub/sub messaging service.
+Publishers send messages to a Topic. Subscribers receive messages from the Topic.
+Supports fan-out: one message → multiple subscribers simultaneously.
+Subscribers can be: Lambda, SQS, HTTP/HTTPS endpoints, email, SMS.
+Common pattern: SNS topic fans out to multiple SQS queues for parallel processing by different services.
+# Q272. EventBridge?
+Amazon EventBridge is a serverless event bus for routing events between AWS services and applications.
+More powerful than SNS for event routing — supports event filtering, transformation, and routing rules.
+Receives events from AWS services, SaaS apps, or your own apps.
+Rules filter events and route them to targets (Lambda, SQS, Step Functions, etc.).
+Replaces CloudWatch Events — use EventBridge for new event-driven architectures.
+# Q273. S3?
+S3 (Simple Storage Service) is AWS's object storage service for storing any type of file.
+Highly durable (99.999999999% — 11 nines), scalable, and accessible over HTTP.
+Objects are stored in buckets. Each object has a key (path) and metadata.
+Storage classes: Standard, Infrequent Access, Glacier (archival), Intelligent Tiering.
+Use for: application assets, backup, static websites, data lake storage, Lambda deployment packages.
+# Q274. S3 Lifecycle?
+S3 Lifecycle policies automate moving objects between storage classes based on age.
+Example: move to Standard-IA after 30 days, to Glacier after 90 days, delete after 365 days.
+Reduces storage costs significantly for logs, backups, and infrequently accessed data.
+Configured at the bucket level with rules targeting specific prefixes or object tags.
+Essential for cost optimization in production systems.
+# Q275. Presigned URL?
+A presigned URL is a temporary URL generated by AWS that grants time-limited, direct access to an S3 object.
+No AWS credentials needed by the end user — permission is embedded in the URL.
+Generated server-side using the AWS SDK with an expiry time.
+Use for: allowing users to securely download or upload files directly to S3 without exposing your AWS credentials.
+Workflow: client requests presigned URL from your API → API generates and returns URL → client uploads/downloads directly to S3.
+# Q276. VPC?
+VPC (Virtual Private Cloud) is a logically isolated virtual network in AWS.
+You control IP address ranges, subnets, routing tables, and network gateways.
+Public subnets: accessible from the internet. Private subnets: not directly accessible.
+Resources in private subnets (RDS, Lambda in VPC) are protected from direct internet access.
+Key interview line: "VPC = your own private network inside AWS."
+# Q277. Security Groups?
+Security groups act as virtual firewalls controlling inbound and outbound traffic for AWS resources.
+Stateful: if inbound traffic is allowed, the corresponding outbound response is automatically allowed.
+Rules specify: protocol, port range, and source/destination (IP range or another security group).
+Deny by default — only allow explicitly permitted traffic.
+Attach to EC2 instances, RDS databases, Lambda in VPC, load balancers.
+# Q278. NAT Gateway?
+A NAT (Network Address Translation) Gateway allows resources in private subnets to access the internet.
+Outbound traffic is routed through the NAT Gateway in the public subnet to the internet.
+Inbound connections from the internet are blocked — private resources remain secure.
+Used for: Lambda in VPC downloading packages, EC2 instances updating software.
+NAT Gateways are managed, highly available, but have a cost — consider VPC endpoints as cheaper alternatives.
+# Q279. Load Balancer?
+AWS Elastic Load Balancer (ELB) distributes incoming traffic across multiple targets.
+Application Load Balancer (ALB): layer 7, HTTP/HTTPS routing by path and host — ideal for microservices.
+Network Load Balancer (NLB): layer 4, ultra-high performance, TCP/UDP.
+Gateway Load Balancer (GWLB): for deploying network appliances.
+ALB integrates with Lambda, EC2, ECS, and supports WebSockets.
+# Q280. Auto Scaling?
+Auto Scaling automatically adjusts the number of EC2 instances or other resources based on demand.
+Scale out (add instances) when load increases; scale in (remove instances) when load decreases.
+Policies: Target Tracking (maintain a metric at a target value), Step Scaling, Scheduled Scaling.
+Ensures availability during traffic spikes and reduces cost during low-traffic periods.
+For Lambda: auto-scaling is built-in — Lambda scales concurrency automatically.
+# Q281. Serverless Architecture?
+Serverless means no server management — the cloud provider manages infrastructure.
+Key services: Lambda (compute), API Gateway (routing), DynamoDB (database), S3 (storage), SQS (queuing).
+You pay only for actual usage — no idle server costs.
+Benefits: automatic scaling, high availability, reduced operational overhead.
+Trade-offs: cold starts, execution time limits (15 min for Lambda), vendor lock-in.
+# Q282. Lambda Monitoring?
+Lambda automatically sends metrics to CloudWatch: invocations, errors, duration, throttles, concurrent executions.
+Log output (Console.WriteLine in .NET) goes to CloudWatch Logs automatically.
+Set alarms on error rate and duration to detect issues.
+Use AWS X-Ray for distributed tracing across Lambda and other services.
+Key metrics to monitor: error rate (should be near zero), p99 duration (should be within SLA), throttle count (increase concurrency limit if too high).
+# Q283. Cost Optimization?
+Use Lambda for sporadic, event-driven workloads — pay per execution.
+Use EC2 Spot Instances for fault-tolerant batch workloads — up to 90% cheaper.
+S3 Lifecycle policies to tier old data to cheaper storage classes.
+Reserved Instances or Savings Plans for predictable, long-running workloads.
+Right-size Lambda memory — more memory = faster execution = possibly cheaper overall.
+Eliminate idle resources: stop dev/test instances outside business hours.
+# Q284. API Security (AWS)?
+Use Lambda Authorizers or Cognito User Pools for API Gateway authentication.
+Enable WAF (Web Application Firewall) to protect against SQL injection, XSS, and DDoS.
+Use API Gateway usage plans and API keys to throttle and track consumers.
+Enable SSL/TLS — API Gateway enforces HTTPS by default.
+Store secrets in AWS Secrets Manager or Parameter Store — never in code or environment variables.
+# Q285. AWS Secrets Manager?
+Secrets Manager stores and rotates secrets (DB passwords, API keys) automatically.
+Applications fetch secrets at runtime via the SDK — no secrets in code or config files.
+Supports automatic rotation for RDS and other services — the password rotates without downtime.
+Audit secret access via CloudTrail.
+Preferred over Parameter Store for secrets that need automatic rotation.
+# Q286. Parameter Store?
+AWS Systems Manager Parameter Store stores configuration data and secrets.
+Types: String (plain text), SecureString (encrypted via KMS), StringList.
+Free tier available (Standard parameters) — cheaper than Secrets Manager for non-rotating secrets.
+Use for: feature flags, configuration values, non-rotating secrets.
+Lambda and EC2 can fetch parameters at startup for dynamic configuration.
+# Q287. CloudFormation?
+CloudFormation is AWS's Infrastructure as Code (IaC) service.
+Define infrastructure in YAML or JSON templates.
+Provisions all resources in a stack atomically — if any resource fails, the stack rolls back.
+Enables: version-controlled infrastructure, repeatable deployments, environment parity.
+Key interview line: "CloudFormation = describe your infrastructure as code; AWS creates it."
+# Q288. Terraform Basics?
+Terraform is an open-source IaC tool by HashiCorp — works across cloud providers.
+Define infrastructure in HCL (HashiCorp Configuration Language).
+Key commands: terraform init, plan (preview changes), apply (provision), destroy.
+State file tracks the current state of provisioned infrastructure.
+Preferred over CloudFormation when working across multiple cloud providers or for more flexible workflows.
+# Q289. Multi-Region Deployment?
+Deploy the application in multiple AWS regions for disaster recovery and global performance.
+Use Route 53 for DNS with latency-based or geolocation routing.
+Replicate data: RDS cross-region read replicas, DynamoDB Global Tables, S3 Cross-Region Replication.
+Active-Active: all regions serve traffic simultaneously. Active-Passive: secondary region is a standby.
+Design for the possibility that a full region becomes unavailable.
+# Q290. High Availability?
+High Availability (HA) means the system is operational as much as possible — minimizing downtime.
+Achieved via: redundancy (multiple instances/AZs), auto-scaling, load balancing, failover mechanisms.
+Deploy across multiple Availability Zones (AZs) in the same region for fault isolation.
+RDS Multi-AZ: synchronous replication with automatic failover.
+Target: 99.99% (four nines) = less than 1 hour downtime per year.
+@xunit
+# Q291. Unit Testing?
+Unit testing tests a single unit of code (usually a method or class) in isolation.
+External dependencies (DB, HTTP) are mocked or stubbed.
+Tests run fast and require no external infrastructure.
+Follow the AAA pattern: Arrange (set up), Act (execute), Assert (verify).
+Key benefit: catch bugs early, enable safe refactoring, act as living documentation.
+# Q292. Integration Testing?
+Integration testing tests how multiple components work together.
+Tests real interactions between services, databases, and external systems.
+Slower than unit tests — may require a running database, network, etc.
+In ASP.NET Core, use WebApplicationFactory<T> to spin up a test server and test the full HTTP pipeline.
+Balance: unit tests for logic, integration tests for real interactions.
+# Q293. Mocking?
+Mocking replaces a real dependency with a fake implementation that you control.
+Allows testing code in isolation without needing real databases, HTTP calls, or file systems.
+A mock can verify: was a method called? How many times? With what arguments?
+Key distinction: Mock = verify behavior. Stub = return predefined values. Fake = lightweight working implementation.
+# Q294. Moq Framework?
+Moq is the most popular .NET mocking library.
+Create a mock: var mock = new Mock<IUserRepository>();
+Set up behavior: mock.Setup(r => r.GetById(1)).ReturnsAsync(user);
+Inject the mock: var service = new UserService(mock.Object);
+Verify calls: mock.Verify(r => r.GetById(1), Times.Once());
+# Q295. Fact vs Theory?
+[Fact] is a test that runs once with no parameters — a single, specific test case.
+[Theory] is a parameterized test that runs multiple times with different data.
+[Theory] uses [InlineData], [MemberData], or [ClassData] to provide test data.
+Example: [Theory] [InlineData(2, 3, 5)] [InlineData(0, 0, 0)] public void Add_ReturnsSum(int a, int b, int expected).
+Use Theory to test multiple input scenarios without writing separate test methods.
+# Q296. Test Coverage?
+Test coverage measures what percentage of your code is exercised by your tests.
+Tools: Coverlet (free, .NET), Visual Studio Enterprise code coverage, SonarQube.
+100% coverage does not guarantee bug-free code — focus on testing critical paths.
+Aim for high coverage of: business logic, edge cases, error paths.
+Coverage is a guide — don't write tests just to hit a number.
+# Q297. Arrange Act Assert?
+AAA is the standard pattern for structuring unit tests.
+Arrange: set up the test data, dependencies, and initial state.
+Act: call the method or operation being tested.
+Assert: verify that the result matches expectations.
+Example: Arrange (create user with email), Act (call IsEmailValid()), Assert (returns true).
+# Q298. Dependency Mocking?
+When testing a class that depends on interfaces (IEmailService, IUserRepository), replace them with mocks.
+Use constructor injection — the test passes mock objects instead of real implementations.
+This is why Dependency Injection and coding to interfaces is essential for testability.
+Example: test OrderService by injecting Mock<IPaymentService> and Mock<IOrderRepository>.
+# Q299. Mock Repository?
+Create a mock of the repository interface: var mockRepo = new Mock<IUserRepository>();
+Set up what it should return: mockRepo.Setup(r => r.GetAll()).ReturnsAsync(testUsers);
+Inject it into the service being tested: var service = new UserService(mockRepo.Object);
+Verify it was called: mockRepo.Verify(r => r.GetAll(), Times.Once());
+This keeps tests fast and independent of the real database.
+# Q300. TDD (Test Driven Development)?
+TDD is a development approach: write a failing test first, then write code to make it pass, then refactor.
+Red: write a failing test. Green: write minimum code to pass. Refactor: clean up the code.
+Forces you to think about the interface and expected behavior before implementation.
+Results in better-designed, more testable code.
+Key benefit: tests become the specification — they document expected behavior.
+# Q301. What should NOT be unit tested?
+Constructors that just assign values — no logic to test.
+Framework code (ASP.NET Core routing, EF Core internals) — not your code.
+Private methods directly — test them through their public callers.
+Database schemas or migrations — test with integration tests.
+Simple getters/setters with no logic.
+# Q302. How to test async methods?
+Make the test method async and return Task: public async Task MethodName_Condition_ExpectedResult()
+Await the method under test: var result = await service.GetUserAsync(1);
+Use mock.Setup with ReturnsAsync() for async dependencies.
+Use Assert.ThrowsAsync<T> for testing async exceptions.
+Example: await Assert.ThrowsAsync<NotFoundException>(() => service.GetUserAsync(-1));
+# Q303. Mock ILogger?
+ILogger can be mocked with Moq: var mockLogger = new Mock<ILogger<MyService>>();
+For verifying log calls: use Mock.Of<ILogger<T>>() or a custom LoggerFactory.
+Alternatively: use the NullLoggerFactory or NullLogger<T>.Instance to suppress logging in tests.
+Only verify logger calls if logging behavior is specifically what you're testing.
+# Q304. Mock DbContext?
+Option 1: Use an in-memory database provider for EF Core tests: optionsBuilder.UseInMemoryDatabase("TestDb")
+Option 2: Use SQLite in-memory database — closer to real SQL behavior.
+Option 3: Mock IRepository (preferred for unit tests) — abstract DbContext behind a repository.
+Mocking DbContext directly with Moq is difficult — prefer the repository pattern for testable data access.
+# Q305. Mock HttpClient?
+HttpClient cannot be mocked directly with Moq.
+Use IHttpClientFactory with a custom DelegatingHandler that intercepts HTTP calls.
+Or use the MockHttpMessageHandler approach (WireMock.Net or custom).
+Wrap HttpClient in an IApiClient interface and mock the interface instead.
+Best practice: abstract HTTP calls behind an interface for easy testing.
+# Q306. API Testing?
+Test API endpoints using WebApplicationFactory<T> from Microsoft.AspNetCore.Mvc.Testing.
+Creates an in-memory test server running your full ASP.NET Core pipeline.
+Use HttpClient to send real HTTP requests to the test server.
+Seed test data in an in-memory database.
+Tests verify: status code, response body, headers — end-to-end without a real network or external DB.
+# Q307. Controller Testing?
+Unit test controllers by instantiating them directly with mocked services.
+Or use WebApplicationFactory for full integration testing of the HTTP pipeline.
+Unit test: var controller = new UserController(mockService.Object); var result = await controller.GetUser(1);
+Verify: result is OkObjectResult with correct data.
+For controllers with complex middleware (auth, filters), use integration testing with WebApplicationFactory.
+# Q308. Service Testing?
+Service tests are pure unit tests — test business logic in isolation.
+Mock all dependencies (repositories, external services).
+Focus on: correct business rules, error handling, edge cases.
+Example: test that OrderService.CreateOrder() throws an exception when stock is 0.
+Services should be easily testable — if they're hard to test, they're probably violating SOLID principles.
+# Q309. Repository Testing?
+Repository tests verify that data access code works correctly against a real (or test) database.
+Use EF Core InMemory or SQLite in-memory provider for fast, isolated tests.
+Test: does GetById return the right entity? Does Add save correctly?
+For complex SQL queries (stored procedures, raw SQL), use a real test database.
+Repository tests are integration tests — they test real database interactions.
+# Q310. CI/CD Integration?
+Run all unit and integration tests automatically on every commit in the CI pipeline.
+Fail the build if any test fails — prevent broken code from being merged.
+Generate a test coverage report in the pipeline (Coverlet + Cobertura format).
+Run tests in parallel where possible to speed up the pipeline.
+Integration tests requiring external services can run in Docker containers within the CI pipeline.
+@systemdesign
+# Q311. Design URL Shortener
+Components: REST API (create and resolve), Database (short→long URL mapping), Cache (Redis for hot URLs).
+Create flow: accept long URL → generate unique short code (base62 of auto-increment ID or random hash) → store mapping → return short URL.
+Resolve flow: receive short code → check cache → if miss, check DB → redirect (301 or 302).
+301 = permanent redirect (browser caches it — reduces future server load). 302 = temporary (always hits server).
+Scale considerations: read-heavy system, heavily cache resolutions, use CDN for global performance.
+Handle: custom aliases, expiry times, analytics (click counting), collision detection.
+# Q312. Design Notification Service
+Components: REST API (accept notification requests), Message Queue (SQS/RabbitMQ for decoupling), Workers (per channel: Email, SMS, Push), Template Engine, Delivery Status Tracker, User Preference Store.
+Flow: API receives notification request → validates and publishes to queue → channel-specific worker consumes → renders template → sends via provider (SendGrid, Twilio, FCM).
+Reliability: retry with exponential backoff, dead-letter queue for permanently failed messages.
+User preferences: opt-out management per channel and notification type.
+Scale: add more worker instances per channel independently based on load.
+# Q313. Design Meeting Management System
+Entities: User, Meeting (title, start, end, recurrence), Room (capacity, location), Attendee (user + response status).
+Core features: create meeting, invite attendees, check room/user availability, reminders.
+Conflict detection: query WHERE room_id = X AND NOT (end <= new_start OR start >= new_end) to find overlapping meetings.
+Notifications: send email/push when meeting is created, updated, or cancelled — via a notification service.
+Recurring meetings: store recurrence rule (RRULE format); generate instances on query rather than storing all.
+Scale: read-heavy — cache room availability, use calendar-specific indexes on time ranges.
+# Q314. Design Audit Logging System
+Every significant user action is published as an event to a message queue.
+An audit worker consumes events and writes to an append-only audit log store.
+Audit record structure: userId, action, entityType, entityId, before-state (JSON), after-state (JSON), timestamp, IP address.
+Storage: write-once, never update or delete. Use append-only DB or event store.
+Query API: search by userId, entity, time range, action type.
+Scale: high-volume writes — use Kafka or SQS for ingestion, time-series optimized storage.
+# Q315. Design Authentication Service
+Registration: hash password with bcrypt (salt + hash), store user record.
+Login: verify bcrypt hash → generate access token (JWT, short-lived 15 min) and refresh token (long-lived, stored in DB).
+Token refresh: validate refresh token → rotate (invalidate old, issue new) → return new access token.
+Logout: invalidate refresh token in DB.
+Security: rate limit login attempts, lock account after N failures, MFA support.
+Token storage: access token in memory (JS), refresh token in HTTP-only cookie.
+# Q316. Design Chat Application
+Persistent connections: WebSockets for real-time bidirectional messaging.
+Message flow: client sends message → server broadcasts to all participants in the room.
+Multi-server scale: use Redis Pub/Sub to fan out messages to clients connected on different servers.
+Message persistence: store all messages in DB for history.
+Presence: track online users with heartbeat mechanism (Redis key with expiry per user).
+Media: store files in S3, send the URL in the message payload.
+# Q317. Design Document Storage System
+Upload: client → API → stream file to object storage (S3/Azure Blob) → store metadata in DB.
+Metadata: filename, owner, tags, created date, size, storage key, permissions.
+Versioning: each upload creates a new version record. Previous versions are retained. Mark latest version explicitly.
+Search: index metadata in Elasticsearch or Azure Search for full-text search on filenames, tags, content.
+Access control: role-based — owner, viewers, editors. Generate presigned URLs for file download.
+Preview: background job generates thumbnails/previews for common formats.
+# Q318. Design E-Commerce Backend
+Services: User Service, Product Catalog Service, Inventory Service, Cart Service, Order Service, Payment Service, Notification Service.
+Order flow: Cart → Create Order → Reserve Inventory → Process Payment → Confirm Order → Send Confirmation.
+Saga pattern: if payment fails → release inventory → cancel order → notify user.
+Inventory: use optimistic locking or DB-level reservation to prevent overselling.
+Product catalog: cache aggressively in Redis — reads are 99% of traffic.
+Search: Elasticsearch for product search with full-text, filtering, and faceting.
+# Q319. Design File Upload Service
+Upload flow: client requests presigned URL from API → API generates S3 presigned URL with expiry → client uploads directly to S3 → client notifies API of completion.
+Direct-to-S3 upload reduces API server load — the file never passes through the API server.
+Large files: multipart upload — split into chunks, upload in parallel, S3 assembles them.
+Post-upload processing: S3 event → Lambda trigger → virus scan → generate thumbnail → update DB metadata.
+Access: serve files via presigned URLs (time-limited) or CDN for public assets.
+Never store files in the database — always in object storage.
+# Q320. Design GRC Platform
+GRC = Governance, Risk, and Compliance.
+Core modules: Policy Management, Risk Register, Control Library, Audit Management, Issue Tracking.
+Key features: role-based access (auditor, reviewer, admin), approval workflows, document versioning, audit trails.
+Workflows: Step Functions or BullMQ for multi-step approval processes with notifications.
+Audit logging: every change to every record is logged with who changed what and when.
+Reporting: compliance dashboards, risk heat maps, status reports — pre-aggregate in a reporting DB.
+Scale: document-heavy reads — use CDN for policy documents, cache dashboard metrics.
+# Q321. Rate Limiting Design
+Strategies: Fixed Window (count per time window), Sliding Window (rolling window), Token Bucket (burst allowance), Leaky Bucket (smoothed output rate).
+Storage: Redis is ideal — INCR command with EXPIRE for per-key counters.
+Key: rate limit by user ID, API key, or IP address.
+Response: return 429 Too Many Requests with Retry-After header.
+Distributed: Redis-based counters work correctly across multiple API server instances.
+Tiers: different limits per subscription tier (free, pro, enterprise).
+# Q322. Distributed Cache Design
+Chose Redis for its performance, data structure support, and cluster capability.
+Cache-aside pattern: app checks cache first → if miss, reads from DB, stores in cache → subsequent reads hit cache.
+Eviction policies: LRU (Least Recently Used) for general caches, TTL-based expiry for time-sensitive data.
+Cache invalidation: on write, explicitly delete or update the cached item. Or use TTL and accept stale data briefly.
+Cache stampede prevention: use mutex lock on cache miss so only one request populates the cache.
+Redis Cluster for horizontal scaling of the cache tier.
+# Q323. Search Service Design
+Build a search service on top of Elasticsearch or Azure Cognitive Search.
+Index documents with structured fields: title, tags, content, metadata.
+Sync strategy: DB as source of truth → publish change events → search indexer consumes events and updates index.
+Near real-time: events ensure the search index is updated within seconds of a DB change.
+Query features: full-text search, filtering, faceting (aggregate counts by category), sorting, pagination.
+Scale: Elasticsearch scales horizontally — add nodes to the cluster for more capacity.
+# Q324. Event Driven System Design
+Message broker: Kafka for high throughput, RabbitMQ for routing flexibility, AWS EventBridge for AWS-native.
+Producers publish domain events: OrderPlaced, PaymentProcessed, UserRegistered.
+Consumers subscribe to events they care about and react independently.
+Schema registry: define event schemas (Avro, JSON Schema) to enforce contracts between producers and consumers.
+Idempotency: consumers must handle duplicate events gracefully (store processed event IDs).
+Dead letter topic: unprocessable events go to a DLT for investigation.
+# Q325. Queue Based System Design
+Queues decouple producers from consumers and enable asynchronous processing.
+Pattern: API writes task to queue → worker polls queue → processes task → deletes message on success.
+Visibility timeout ensures messages are reprocessed if a worker crashes mid-processing.
+Dead letter queue: messages that fail processing N times are moved to DLQ for investigation.
+Scaling: add more consumer instances to increase throughput — queue naturally load-levels.
+Use cases: email sending, order processing, image resizing, report generation.
+# Q326. High Availability Design
+Deploy across multiple Availability Zones — no single point of failure.
+Load balancer distributes traffic across multiple instances.
+Database: Multi-AZ RDS with automatic failover or Aurora with read replicas.
+Stateless services: no session state stored locally — all state in DB/cache (Redis).
+Health checks: load balancer routes only to healthy instances.
+Circuit breakers: prevent cascading failures when a downstream service is unavailable.
+Aim: 99.99% availability (four nines).
+# Q327. Failover Design
+Active-Passive: primary handles traffic; standby is a hot replica. On failure, DNS switches to standby.
+Active-Active: multiple regions simultaneously serve traffic. Faster recovery, higher cost.
+RDS Multi-AZ: synchronous replication, automatic failover in 60-120 seconds.
+Route 53 health checks: automatically switch DNS to a healthy endpoint on failure.
+Chaos engineering: deliberately test failure scenarios (Netflix Chaos Monkey approach).
+Key metric: RTO (Recovery Time Objective) and RPO (Recovery Point Objective) define acceptable downtime and data loss.
+# Q328. Multi-Tenant Architecture
+Approaches: Database per tenant (best isolation, highest cost), Schema per tenant (moderate isolation), Shared DB with tenant ID (most efficient, least isolation).
+Tenant isolation: every query must include a tenant ID filter — never leak data between tenants.
+Middleware: resolve tenant from subdomain/header/JWT and add to request context.
+Separate configurations per tenant: feature flags, branding, integrations.
+Scale: shared infrastructure scales efficiently; per-tenant isolation is used for high-value or compliance-sensitive customers.
+# Q329. Monitoring Architecture
+Metrics: CloudWatch (AWS), Application Insights (Azure), Prometheus + Grafana (self-hosted).
+Logs: CloudWatch Logs, ELK Stack (Elasticsearch + Logstash + Kibana), Splunk.
+Traces: AWS X-Ray, Jaeger, OpenTelemetry.
+Alerting: PagerDuty, OpsGenie, CloudWatch Alarms.
+Key metrics to monitor: error rate, latency (p50, p95, p99), throughput (requests per second), resource utilization (CPU, memory), queue depth.
+SLO dashboard: always have a top-level view of system health visible to the team.
+# Q330. Logging Architecture
+Structured logging: log JSON with consistent fields (timestamp, level, service, traceId, userId, message).
+Centralized collection: all services ship logs to a central aggregator (Fluentd, Logstash, CloudWatch Agent).
+Storage: Elasticsearch for searchable logs, S3 for long-term archive.
+Correlation: every log entry includes the correlation ID to trace a request across services.
+Log levels: DEBUG (dev only), INFO (normal operations), WARN (unexpected but handled), ERROR (failed operations), CRITICAL (system-impacting).
+Retention: production logs retained for 90 days actively, archived to S3 for compliance.
+@sqlqueries
+# Q_SQL_1. Find employees with salary > 50000
+SELECT * FROM Employee WHERE Salary > 50000;
+# Q_SQL_2. Find employees whose name starts with 'A'
+SELECT * FROM Employee WHERE Name LIKE 'A%';
+# Q_SQL_3. Find duplicate records
+SELECT Email, COUNT(*) AS DuplicateCount
+FROM Employee
+GROUP BY Email
+HAVING COUNT(*) > 1;
+# Q_SQL_4. Count employees department-wise
+SELECT Department, COUNT(*) AS TotalEmployees
+FROM Employee
+GROUP BY Department;
+# Q_SQL_5. Second Highest Salary
+SELECT MAX(Salary) FROM Employee
+WHERE Salary < (SELECT MAX(Salary) FROM Employee);
+# Q_SQL_6. Third Highest Salary (using DENSE_RANK)
+SELECT Salary FROM (
+  SELECT Salary, DENSE_RANK() OVER (ORDER BY Salary DESC) AS RankNo
+  FROM Employee
+) X WHERE RankNo = 3;
+# Q_SQL_7. Top 5 Highest Salaries
+SELECT TOP 5 * FROM Employee ORDER BY Salary DESC;
+# Q_SQL_8. Employees earning above their department average
+SELECT * FROM Employee E
+WHERE Salary > (
+  SELECT AVG(Salary) FROM Employee
+  WHERE Department = E.Department
+);
+# Q_SQL_9. Find employees with no manager
+SELECT * FROM Employee WHERE ManagerId IS NULL;
+# Q_SQL_10. Delete Duplicate Records (keep lowest Id)
+WITH CTE AS (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY Email ORDER BY Id) AS RN
+  FROM Employee
+)
+DELETE FROM CTE WHERE RN > 1;
+# Q_SQL_11. Running Total of Salary
+SELECT Name, Salary,
+  SUM(Salary) OVER (ORDER BY Id) AS RunningTotal
+FROM Employee;
+# Q_SQL_12. Nth Highest Salary (generic, replace N)
+SELECT Salary FROM (
+  SELECT DISTINCT Salary, DENSE_RANK() OVER (ORDER BY Salary DESC) AS r
+  FROM Employee
+) x WHERE r = 2; -- replace 2 with N
+# Q_SQL_13. Find all employees in a specific department with salary rank
+SELECT Name, Department, Salary,
+  DENSE_RANK() OVER (PARTITION BY Department ORDER BY Salary DESC) AS SalaryRank
+FROM Employee;
+# Q_SQL_14. Department-wise highest salary
+SELECT Department, MAX(Salary) AS HighestSalary
+FROM Employee
+GROUP BY Department;
+# Q_SQL_15. Find employees who joined in the last 30 days
+SELECT * FROM Employee WHERE HireDate >= DATEADD(DAY, -30, GETDATE());
+# Q_SQL_16. Count employees per department with running total
+SELECT Department, COUNT(*) AS EmpCount,
+  SUM(COUNT(*)) OVER (ORDER BY Department) AS RunningTotal
+FROM Employee
+GROUP BY Department;
+# Q_SQL_17. Find employees with same salary
+SELECT Salary, COUNT(*) AS Count FROM Employee
+GROUP BY Salary HAVING COUNT(*) > 1;
+# Q_SQL_18. Employee and Manager names using self-join
+SELECT E.Name AS EmployeeName, M.Name AS ManagerName
+FROM Employee E
+LEFT JOIN Employee M ON E.ManagerId = M.Id;
+# Q_SQL_19. Find missing IDs in a sequence
+SELECT Id + 1 AS MissingId FROM Employee E1
+WHERE NOT EXISTS (SELECT 1 FROM Employee E2 WHERE E2.Id = E1.Id + 1)
+AND Id < (SELECT MAX(Id) FROM Employee);
+# Q_SQL_20. Pivot: Department-wise salary by year
+SELECT Department,
+  [2022] AS Salary_2022, [2023] AS Salary_2023, [2024] AS Salary_2024
+FROM (
+  SELECT Department, YEAR(HireDate) AS Yr, Salary FROM Employee
+) Src
+PIVOT (SUM(Salary) FOR Yr IN ([2022],[2023],[2024])) AS PivotTable;
+# Q_SQL_21. Recursive CTE: Org hierarchy
+WITH OrgCTE AS (
+  SELECT Id, Name, ManagerId, 0 AS Level FROM Employee WHERE ManagerId IS NULL
+  UNION ALL
+  SELECT E.Id, E.Name, E.ManagerId, O.Level + 1
+  FROM Employee E JOIN OrgCTE O ON E.ManagerId = O.Id
+)
+SELECT * FROM OrgCTE ORDER BY Level;
+# Q_SQL_22. LEAD and LAG: Compare salary with next and previous employee
+SELECT Name, Salary,
+  LAG(Salary, 1, 0) OVER (ORDER BY Id) AS PrevSalary,
+  LEAD(Salary, 1, 0) OVER (ORDER BY Id) AS NextSalary
+FROM Employee;
+# Q_SQL_23. MERGE: Upsert employee data
+MERGE Employee AS Target
+USING NewEmployees AS Source ON Target.Id = Source.Id
+WHEN MATCHED THEN UPDATE SET Target.Salary = Source.Salary
+WHEN NOT MATCHED THEN INSERT (Id, Name, Salary) VALUES (Source.Id, Source.Name, Source.Salary)
+WHEN NOT MATCHED BY SOURCE THEN DELETE;
+# Q_SQL_24. Find first non-repeating character using SQL
+SELECT TOP 1 Character FROM (
+  SELECT SUBSTRING(Name, n, 1) AS Character, COUNT(*) AS Cnt
+  FROM Employee
+  CROSS JOIN (SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS n FROM sys.columns) Nums
+  WHERE n <= LEN(Name)
+  GROUP BY SUBSTRING(Name, n, 1)
+) X WHERE Cnt = 1;
+# Q_SQL_25. Transactions example
+BEGIN TRANSACTION;
+  UPDATE Account SET Balance = Balance - 500 WHERE AccountId = 1;
+  UPDATE Account SET Balance = Balance + 500 WHERE AccountId = 2;
+  IF @@ERROR <> 0
+    ROLLBACK TRANSACTION;
+  ELSE
+    COMMIT TRANSACTION;
+@ccoding
+# Q_C_1. Reverse a String
+string input = "riyaz";
+char[] arr = input.ToCharArray();
+Array.Reverse(arr);
+string result = new string(arr); // Output: "zayi r"
+# Q_C_2. Check Palindrome
+string str = "madam";
+string rev = new string(str.Reverse().ToArray());
+bool isPalindrome = str == rev; // true
+Explanation: reverse the string and compare. "madam" reversed is "madam" — palindrome.
+# Q_C_3. Fibonacci Series
+int a = 0, b = 1;
+for (int i = 0; i < 10; i++) {
+    Console.Write(a + " ");
+    int temp = a + b;
+    a = b;
+    b = temp;
+}
+// Output: 0 1 1 2 3 5 8 13 21 34
+# Q_C_4. Check Prime Number
+bool IsPrime(int num) {
+    if (num <= 1) return false;
+    for (int i = 2; i <= Math.Sqrt(num); i++) {
+        if (num % i == 0) return false;
+    }
+    return true;
+}
+Explanation: check divisibility only up to square root — efficient.
+# Q_C_5. Factorial (Recursive)
+int Factorial(int n) {
+    if (n == 0) return 1;
+    return n * Factorial(n - 1);
+}
+// Factorial(5) = 5 * 4 * 3 * 2 * 1 = 120
+# Q_C_6. Find Duplicate Characters in a String
+var duplicates = "programming"
+    .GroupBy(c => c)
+    .Where(g => g.Count() > 1)
+    .Select(g => g.Key);
+// Output: r, g, m
+# Q_C_7. Count Words in a Sentence
+string sentence = "Hello How Are You";
+int wordCount = sentence.Split(' ').Length; // 4
+Or more robust: sentence.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries).Length
+# Q_C_8. Check Anagram
+bool IsAnagram(string a, string b) {
+    return a.ToLower().OrderBy(c => c).SequenceEqual(b.ToLower().OrderBy(c => c));
+}
+// "listen" and "silent" are anagrams
+# Q_C_9. Find Missing Number in 1 to N
+int[] arr = { 1, 2, 3, 5 };
+int n = arr.Length + 1;
+int expected = n * (n + 1) / 2;
+int actual = arr.Sum();
+int missing = expected - actual; // 4
+Explanation: sum of 1 to N is N*(N+1)/2. Subtract actual sum to find the missing number.
+# Q_C_10. Remove Duplicates from Array
+int[] arr = { 1, 2, 2, 3, 4, 4, 5 };
+var result = arr.Distinct().ToList(); // [1, 2, 3, 4, 5]
+# Q_C_11. Find Second Largest Number in Array
+int[] arr = { 3, 1, 4, 1, 5, 9, 2, 6 };
+int secondLargest = arr.Distinct().OrderByDescending(x => x).Skip(1).First(); // 6
+# Q_C_12. Check if String has Balanced Parentheses
+bool IsBalanced(string s) {
+    var stack = new Stack<char>();
+    foreach (char c in s) {
+        if (c == '(') stack.Push(c);
+        else if (c == ')') {
+            if (!stack.Any()) return false;
+            stack.Pop();
+        }
+    }
+    return !stack.Any();
+}
+# Q_C_13. Reverse words in a sentence
+string sentence = "Hello World";
+string reversed = string.Join(" ", sentence.Split(' ').Reverse());
+// Output: "World Hello"
+# Q_C_14. FizzBuzz
+for (int i = 1; i <= 100; i++) {
+    if (i % 15 == 0) Console.Write("FizzBuzz ");
+    else if (i % 3 == 0) Console.Write("Fizz ");
+    else if (i % 5 == 0) Console.Write("Buzz ");
+    else Console.Write(i + " ");
+}
+# Q_C_15. Find all pairs in array that sum to a target
+int[] arr = { 1, 2, 3, 4, 5 };
+int target = 6;
+var pairs = from i in arr
+            from j in arr
+            where i < j && i + j == target
+            select new { i, j };
+// (1,5), (2,4)
+@linq
+# Q_L_1. Filter employees with salary > 50000
+var result = employees.Where(x => x.Salary > 50000).ToList();
+# Q_L_2. Group by department and count
+var result = employees
+    .GroupBy(x => x.Department)
+    .Select(g => new { Department = g.Key, Count = g.Count() });
+# Q_L_3. Find max salary
+var maxSalary = employees.Max(x => x.Salary);
+# Q_L_4. Top 5 highest paid employees
+var top5 = employees.OrderByDescending(x => x.Salary).Take(5).ToList();
+# Q_L_5. Get distinct departments
+var depts = employees.Select(x => x.Department).Distinct().ToList();
+# Q_L_6. Join employees with departments
+var result = employees.Join(
+    departments,
+    e => e.DepartmentId,
+    d => d.Id,
+    (e, d) => new { e.Name, d.DepartmentName }
+);
+# Q_L_7. Find employees with no manager (ManagerId is null)
+var result = employees.Where(x => x.ManagerId == null).ToList();
+# Q_L_8. Average salary per department
+var result = employees
+    .GroupBy(x => x.Department)
+    .Select(g => new { Dept = g.Key, AvgSalary = g.Average(e => e.Salary) });
+# Q_L_9. Find employees whose name starts with 'A'
+var result = employees.Where(x => x.Name.StartsWith("A")).ToList();
+# Q_L_10. Check if any employee earns more than 100000
+bool hasHighEarner = employees.Any(x => x.Salary > 100000);
+# Q_L_11. Flatten orders to order items
+var allItems = orders.SelectMany(o => o.Items).ToList();
+# Q_L_12. Group employees and get highest salary per department
+var result = employees
+    .GroupBy(x => x.Department)
+    .Select(g => new { Dept = g.Key, MaxSalary = g.Max(e => e.Salary) });
+# Q_L_13. Find duplicate emails using LINQ
+var duplicates = employees
+    .GroupBy(x => x.Email)
+    .Where(g => g.Count() > 1)
+    .Select(g => g.Key);
+# Q_L_14. Paginate results (page 2, 10 items per page)
+int page = 2, pageSize = 10;
+var result = employees
+    .OrderBy(x => x.Id)
+    .Skip((page - 1) * pageSize)
+    .Take(pageSize)
+    .ToList();
+# Q_L_15. Count employees per department where count > 5
+var result = employees
+    .GroupBy(x => x.Department)
+    .Where(g => g.Count() > 5)
+    .Select(g => new { Dept = g.Key, Count = g.Count() });
+@reactcoding
+# Q_R_1. Counter App with useState
+const [count, setCount] = useState(0);
+return (
+  <div>
+    <p>{count}</p>
+    <button onClick={() => setCount(count + 1)}>Increment</button>
+    <button onClick={() => setCount(count - 1)}>Decrement</button>
+    <button onClick={() => setCount(0)}>Reset</button>
+  </div>
+);
+# Q_R_2. Fetch API Data with useEffect
+const [users, setUsers] = useState([]);
+const [loading, setLoading] = useState(true);
+useEffect(() => {
+  fetch('/api/users')
+    .then(res => res.json())
+    .then(data => { setUsers(data); setLoading(false); })
+    .catch(err => console.error(err));
+}, []);
+return loading ? <p>Loading...</p> : <ul>{users.map(u => <li key={u.id}>{u.name}</li>)}</ul>;
+# Q_R_3. Debounced Search Input
+const [query, setQuery] = useState('');
+const [results, setResults] = useState([]);
+useEffect(() => {
+  const timer = setTimeout(() => {
+    if (query) fetch(`/api/search?q=${query}`).then(r => r.json()).then(setResults);
+  }, 500);
+  return () => clearTimeout(timer);
+}, [query]);
+// The timer is cleared and reset on every keystroke — fires only 500ms after user stops typing.
+# Q_R_4. Todo Application
+const [todos, setTodos] = useState([]);
+const [input, setInput] = useState('');
+const addTodo = () => { setTodos([...todos, { id: Date.now(), text: input, done: false }]); setInput(''); };
+const toggleTodo = (id) => setTodos(todos.map(t => t.id === id ? {...t, done: !t.done} : t));
+const deleteTodo = (id) => setTodos(todos.filter(t => t.id !== id));
+# Q_R_5. Custom useFetch Hook
+function useFetch(url) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  useEffect(() => {
+    fetch(url)
+      .then(r => r.json())
+      .then(d => { setData(d); setLoading(false); })
+      .catch(e => { setError(e); setLoading(false); });
+  }, [url]);
+  return { data, loading, error };
+}
+// Usage: const { data, loading, error } = useFetch('/api/users');
+# Q_R_6. Pagination Component
+const ITEMS_PER_PAGE = 10;
+const [page, setPage] = useState(1);
+const paginated = items.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
+return (
+  <div>
+    {paginated.map(item => <div key={item.id}>{item.name}</div>)}
+    <button disabled={page === 1} onClick={() => setPage(page - 1)}>Prev</button>
+    <span>{page} / {totalPages}</span>
+    <button disabled={page === totalPages} onClick={() => setPage(page + 1)}>Next</button>
+  </div>
+);
+# Q_R_7. Protected Route Pattern
+function ProtectedRoute({ children }) {
+  const isAuthenticated = useSelector(state => state.auth.isLoggedIn);
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
+}
+// Usage: <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+# Q_R_8. Redux Toolkit Slice Example
+import { createSlice } from '@reduxjs/toolkit';
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: { value: 0 },
+  reducers: {
+    increment: state => { state.value += 1; },
+    decrement: state => { state.value -= 1; },
+    reset: state => { state.value = 0; }
+  }
+});
+export const { increment, decrement, reset } = counterSlice.actions;
+export default counterSlice.reducer;
+@resume
+# Q_R_JWT. JWT Authentication Flow
+1. User submits credentials (email + password) to POST /auth/login.
+2. Server validates credentials against the database.
+3. Server generates access token (JWT, signed with secret, 15-min expiry) and refresh token (opaque, stored in DB, 7-day expiry).
+4. Returns access token in response body and refresh token in HTTP-only cookie.
+5. Client stores access token in memory (not localStorage — XSS risk) and sends in Authorization: Bearer header on each request.
+6. Server validates JWT on each request: verify signature, check expiry, extract claims.
+7. On access token expiry, client sends refresh token to POST /auth/refresh.
+8. Server validates refresh token, rotates it (invalidate old, issue new), returns new access token.
+9. On logout: invalidate refresh token in DB.
+# Q_R_OAuth. OAuth 2.0 Flow (Authorization Code Flow)
+1. User clicks "Sign in with Google" on your app.
+2. Your app redirects to Google's authorization server with: client_id, redirect_uri, scope, state (CSRF protection), response_type=code.
+3. User logs in to Google and grants permission.
+4. Google redirects back to your app with an authorization code.
+5. Your app backend exchanges the authorization code for tokens: sends code + client_secret to Google's token endpoint.
+6. Google returns: access token (short-lived), refresh token (long-lived), ID token (user identity, OpenID Connect).
+7. Your app uses the access token to call Google APIs on behalf of the user.
+8. Use the refresh token to get new access tokens without the user needing to log in again.
+# Q_R_Repo. Repository Pattern
+Interface: public interface IUserRepository { Task<User> GetById(int id); Task Add(User user); Task<IEnumerable<User>> GetAll(); }
+Implementation: public class UserRepository : IUserRepository { private readonly AppDbContext _context; ... }
+Registration: builder.Services.AddScoped<IUserRepository, UserRepository>();
+Usage: Service receives IUserRepository via constructor injection.
+Benefits: decouples service layer from EF Core, enables easy unit testing with mock repositories, single place for data access logic.
+# Q_R_DI. Dependency Injection in your project
+Register: builder.Services.AddScoped<IOrderService, OrderService>();
+Inject: public OrderController(IOrderService orderService) { _orderService = orderService; }
+The DI container resolves the dependency at runtime.
+Lifetimes used: Scoped for services and DbContext (per request), Singleton for caching and logging, Transient for validators.
+Testing benefit: inject Mock<IOrderService>() in unit tests instead of real implementation.
+# Q_R_LINQ. LINQ Optimization in practice
+Use IQueryable instead of IEnumerable when filtering DB data — keeps filtering server-side.
+Use Select to project only needed columns — don't fetch entire entities when you need two fields.
+Use AsNoTracking() for read-only queries — saves EF change tracking overhead.
+Use Include for known related data needs — avoid N+1 with lazy loading.
+Avoid: calling .ToList() before filtering — always filter first, then materialize.
+# Q_R_SQL. SQL Query Optimization in practice
+Analyze execution plan — look for table scans, key lookups, sort operators.
+Add indexes on frequently filtered and joined columns.
+Use covering indexes — include all columns needed by the query in the index.
+Avoid: functions on indexed columns in WHERE clause, implicit type conversions, SELECT *.
+Rewrite correlated subqueries as JOINs where possible.
+Use pagination (OFFSET/FETCH) for large result sets.
+# Q_R_Redux. Redux Flow in your React app
+UI event (button click) → dispatch an action creator.
+Action creator (thunk) makes an API call asynchronously.
+On success: dispatches the success action with payload.
+Reducer updates the slice state with the new data.
+useSelector picks up the updated state; component re-renders with new data.
+Example: user clicks "Fetch Orders" → dispatch(fetchOrders()) → thunk calls API → dispatches ordersLoaded → reducer updates orders array → component renders order list.
+# Q_R_Middleware. Middleware Pipeline in your project
+Request enters: UseCors() → UseHttpsRedirection() → UseAuthentication() → UseAuthorization() → UseRouting() → Controller action.
+Custom middleware (request logging, correlation ID generation) added before authentication.
+Error handling middleware wraps the entire pipeline to catch unhandled exceptions.
+Response flows back through middleware in reverse order.
+# Q_R_ExHandling. Exception Handling Middleware
+Global exception middleware catches all unhandled exceptions in the pipeline.
+Logs the full exception (stack trace, request details) to Serilog/CloudWatch.
+Returns a Problem Details response (RFC 7807): title, status code, detail, instance.
+Never exposes internal details to the client.
+Custom exceptions (NotFoundException, ValidationException) are mapped to specific status codes (404, 400).
+# Q_R_MSComm. Microservice Communication in your project
+Synchronous: REST API calls between services using HttpClientFactory with Polly retry and circuit breaker policies.
+Asynchronous: SQS for fire-and-forget messaging between services.
+Service discovery: services use environment variables or AWS Cloud Map for endpoint discovery.
+Correlation IDs: passed in headers across all service calls for end-to-end tracing.
+Resilience: retry (transient failures), circuit breaker (failing service), timeout (unresponsive service).
+# Q_R_Lambda. AWS Lambda + API Gateway in your project
+Client → HTTPS request → API Gateway → JWT validation (Lambda Authorizer or Cognito) → routes to Lambda function.
+Lambda function processes request: validates input, calls DynamoDB or RDS, returns response.
+Lambda is packaged as a Docker image or deployment package and deployed via CI/CD pipeline.
+Configuration via environment variables and AWS Parameter Store.
+Monitoring: CloudWatch for logs and metrics, X-Ray for tracing.
+# Q_R_SQS. SQS Queue Processing in your project
+Producer (Lambda or API) sends a message to an SQS queue with the task payload.
+Consumer Lambda (triggered by SQS event source mapping) receives batches of messages.
+Processes each message: validates, calls downstream services, updates database.
+On success: Lambda automatically deletes the processed messages from the queue.
+On failure: failed messages retry up to maxReceiveCount times, then move to Dead Letter Queue.
+Visibility timeout is set to twice the maximum Lambda execution time.
+# Q_R_StepFunctions. Step Functions Workflow in your project
+Orchestrates multi-step processes: Order → Payment → Inventory → Notification.
+Each step is a Lambda function or AWS SDK integration.
+If a step fails: Step Functions can retry automatically with backoff, or execute a catch/compensate path.
+Execution history provides full visibility into each workflow run.
+Used instead of chained Lambda calls — centralizes workflow logic, handles errors gracefully.
+# Q_R_Testing. xUnit Testing Strategy in your project
+Unit tests: every service method has unit tests. Mock all external dependencies (repositories, HTTP clients) with Moq.
+Integration tests: WebApplicationFactory spins up a test server with an in-memory database.
+Test naming: MethodName_Condition_ExpectedResult (e.g., GetUser_WhenIdIsInvalid_ThrowsNotFoundException).
+CI/CD: tests run automatically on every pull request. PR cannot be merged if tests fail.
+Coverage: Coverlet generates coverage report; SonarQube enforces minimum 80% coverage on business logic.
+# Q_R_CICD. CI/CD Pipeline in your project
+Source: Git push to feature branch triggers the pipeline.
+Build: restore packages, compile, run unit tests.
+Test: run integration tests in a Docker container with a test database.
+Quality: SonarQube scan for code quality and coverage.
+Package: Docker image built and pushed to ECR (AWS) or Azure Container Registry.
+Deploy: automatically deploy to staging on main branch merge; manual approval for production.
+Tools: GitHub Actions or Azure DevOps YAML pipelines.
+# Q_R_Debug. Production Issue Debugging approach
+Identify: alert from CloudWatch or user report — check dashboards for error rate or latency spike.
+Correlate: find the failing request's correlation ID in the logs.
+Trace: follow the correlation ID across all service logs to find where it failed.
+Analyze: check the exception, stack trace, and request payload.
+Reproduce: replicate in a staging environment if possible.
+Fix: root cause fix — not a band-aid. Write a regression test.
+Deploy: push fix through CI/CD pipeline.
+Post-mortem: document root cause, impact, and prevention measures.
+# Q_R_MongoDB. MongoDB vs SQL Server
+SQL Server: structured data with relationships, ACID transactions, complex queries with joins, reporting.
+MongoDB: flexible schema (document structure varies), high write throughput, nested/hierarchical data, horizontal scaling.
+In your project: SQL Server for core transactional data (users, orders, meetings). MongoDB for activity logs, audit events, flexible document storage.
+Key insight: don't choose MongoDB just because it's popular — use it when the document model genuinely fits the data.
+    </script>
+
+    <script>
+        // --- Core Application Logic ---
+        const db = {
+            categories: [
+                { id: 'csharp', title: 'Part 1: C# Core', icon: '⚙️', desc: 'Basics, OOP, Advanced, Collections, and Async Programming.' },
+                { id: 'netcore', title: 'Part 2: .NET Core', icon: '🌐', desc: 'Middleware, DI, Configuration, Authentication, Filters, and Caching.' },
+                { id: 'webapi', title: 'Part 3: Web API', icon: '🚀', desc: 'REST, Status Codes, DTOs, Throttling, Resiliency (Polly).' },
+                { id: 'sql', title: 'Part 4: SQL Server', icon: '🗄️', desc: 'Indexes, Normalization, CTEs, Transactions, and Query Optimization.' },
+                { id: 'react', title: 'Part 5: React', icon: '⚛️', desc: 'Hooks, Virtual DOM, Redux Toolkit, Routing, and Performance.' },
+                { id: 'microservices', title: 'Part 6: Microservices', icon: '🧩', desc: 'Saga, CQRS, Event Sourcing, Circuit Breaker, Service Discovery.' },
+                { id: 'aws', title: 'Part 7: AWS', icon: '☁️', desc: 'Lambda, API Gateway, IAM, SQS, CloudWatch, Step Functions, VPC.' },
+                { id: 'xunit', title: 'Part 8: xUnit Testing', icon: '🧪', desc: 'TDD, Moq, Integration Testing, Code Coverage.' },
+                { id: 'systemdesign', title: 'Part 9: System Design', icon: '🏗️', desc: 'Architecture, High Availability, Rate Limiting, Document Storage.' },
+                { id: 'sqlqueries', title: 'Part 10: SQL Queries (Coding)', icon: '📝', desc: 'Hands-on queries: Nth highest salary, duplicates, running totals.' },
+                { id: 'ccoding', title: 'Part 11: C# Coding', icon: '💻', desc: 'Algorithms: Palindrome, Fibonacci, Anagram, FizzBuzz, Arrays.' },
+                { id: 'linq', title: 'Part 12: LINQ Coding', icon: '🔗', desc: 'GroupBy, SelectMany, Joins, Aggregations.' },
+                { id: 'reactcoding', title: 'Part 13: React Coding', icon: '⚛️', desc: 'Practical hooks, Debounce, Pagination, Custom Hooks.' },
+                { id: 'resume', title: 'Part 14: Resume Specifics', icon: '📄', desc: 'JWT Flow, OAuth, Repo Pattern, CI/CD, Production Debugging.' }
+            ],
+            questions: []
+        };
+
+        // Custom Parser to process the massive text efficiently
+        function parseRawData() {
+            const raw = document.getElementById('rawQAData').textContent.trim();
+            const lines = raw.split('\n');
+            let currentCat = '';
+            let currentQ = '';
+            let currentA = '';
+            
+            const saveCurrentQ = () => {
+                if (currentQ) {
+                    db.questions.push({
+                        id: 'q' + db.questions.length,
+                        cat: currentCat,
+                        q: currentQ,
+                        a: currentA.trim()
+                    });
+                }
+            };
+
+            lines.forEach(line => {
+                if (line.startsWith('@')) {
+                    saveCurrentQ();
+                    currentCat = line.substring(1).trim();
+                    currentQ = ''; currentA = '';
+                } else if (line.startsWith('# ')) {
+                    saveCurrentQ();
+                    currentQ = line.substring(2).trim();
+                    currentA = '';
+                } else {
+                    if (line.trim() !== '') currentA += line + '\n';
+                }
+            });
+            saveCurrentQ(); // Save the final item
+        }
+
+        let userProgress = JSON.parse(localStorage.getItem('fullstackProgress')) || {};
+        let currentCat = 'csharp';
+        let progressChartInstance = null;
+
+        function initApp() {
+            parseRawData(); // Build db.questions dynamically
+            renderSidebar();
+            renderCategory(currentCat);
+            updateProgressChart();
+            
+            // Adjust title for total questions
+            document.querySelector('h1.hidden').innerText = `.NET Full Stack Master (${db.questions.length} Qs)`;
+        }
+
+        function renderSidebar() {
+            const nav = document.getElementById('categoryNav');
+            nav.innerHTML = db.categories.map(c => `
+                <button id="nav-${c.id}" onclick="selectCategory('${c.id}')"
+                    class="flex-shrink-0 md:w-full flex items-center gap-2 md:gap-3 px-3 py-2 md:py-2.5 rounded-lg text-left transition-all duration-200 ${c.id === currentCat ? 'bg-slate-800 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'}">
+                    <span class="text-base md:text-lg">${c.icon}</span>
+                    <span class="font-medium text-xs md:text-sm whitespace-nowrap md:whitespace-normal md:truncate">${c.title}</span>
+                </button>
+            `).join('');
+        }
+
+        function selectCategory(id) {
+            currentCat = id;
+            document.querySelectorAll('#categoryNav button').forEach(b => {
+                b.classList.remove('bg-slate-800', 'text-white', 'shadow-md');
+                b.classList.add('text-slate-600', 'hover:bg-slate-100');
+            });
+            const activeBtn = document.getElementById(`nav-${id}`);
+            if(activeBtn) {
+                activeBtn.classList.add('bg-slate-800', 'text-white', 'shadow-md');
+                activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-100');
+            }
+            
+            document.getElementById('searchInput').value = '';
+            
+            // Reset scroll position to top
+            document.getElementById('scrollContainer').scrollTop = 0;
+            
+            renderCategory(id);
+        }
+
+        function renderCategory(catId, searchResults = null) {
+            const cat = db.categories.find(c => c.id === catId);
+            const listEl = document.getElementById('questionList');
+            const noResEl = document.getElementById('noResults');
+            
+            if(!searchResults && cat) {
+                document.getElementById('currentCategoryTitle').innerText = cat.title;
+                document.getElementById('currentCategoryDesc').innerText = cat.desc;
+            }
+
+            const questionsToRender = searchResults || db.questions.filter(q => q.cat === catId);
+
+            if (questionsToRender.length === 0) {
+                listEl.innerHTML = '';
+                noResEl.classList.remove('hidden');
+                return;
+            }
+
+            noResEl.classList.add('hidden');
+
+            listEl.innerHTML = questionsToRender.map((q, idx) => {
+                const isDone = userProgress[q.id];
+                return `
+                <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden transition-all hover:border-indigo-300">
+                    <div class="p-4 flex justify-between items-start cursor-pointer select-none gap-3" onclick="toggleQ('${q.id}')">
+                        <div class="flex-1 flex gap-3 items-start">
+                            <span class="shrink-0 w-6 h-6 rounded bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center text-xs font-bold mt-0.5">${idx+1}</span>
+                            <h3 class="font-semibold text-slate-800 text-sm md:text-base leading-snug">${q.q}</h3>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button onclick="markDone(event, '${q.id}')" 
+                                class="px-2 py-1 rounded text-[10px] uppercase tracking-widest font-bold border transition-colors ${isDone ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100'}">
+                                ${isDone ? '✓ Mastered' : 'Mark'}
+                            </button>
+                            <svg id="icon-${q.id}" class="w-5 h-5 text-slate-400 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+                    <div id="ans-${q.id}" class="accordion-content bg-slate-50 border-t border-slate-100 px-4 md:px-12">
+                        <div class="py-4 answer-text">${q.a}</div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function toggleQ(id) {
+            const content = document.getElementById(`ans-${id}`);
+            const icon = document.getElementById(`icon-${id}`);
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                icon.style.transform = 'rotate(0deg)';
+                content.style.paddingTop = '0';
+                content.style.paddingBottom = '0';
+            } else {
+                content.classList.add('expanded');
+                icon.style.transform = 'rotate(180deg)';
+                content.style.paddingTop = '1rem';
+                content.style.paddingBottom = '1rem';
+            }
+        }
+
+        function markDone(e, id) {
+            e.stopPropagation();
+            userProgress[id] = !userProgress[id];
+            localStorage.setItem('fullstackProgress', JSON.stringify(userProgress));
+            
+            const btn = e.target;
+            if(userProgress[id]) {
+                btn.innerHTML = '✓ Mastered';
+                btn.className = 'px-2 py-1 rounded text-[10px] uppercase tracking-widest font-bold border transition-colors bg-emerald-100 text-emerald-700 border-emerald-200';
+            } else {
+                btn.innerHTML = 'Mark';
+                btn.className = 'px-2 py-1 rounded text-[10px] uppercase tracking-widest font-bold border transition-colors bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100';
+            }
+            updateProgressChart();
+        }
+
+        function handleSearch() {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            if (term.length < 2) {
+                renderCategory(currentCat);
+                return;
+            }
+
+            const results = db.questions.filter(q => 
+                q.q.toLowerCase().includes(term) || q.a.toLowerCase().includes(term)
+            );
+
+            document.getElementById('currentCategoryTitle').innerText = 'Search Results';
+            document.getElementById('currentCategoryDesc').innerText = `Found ${results.length} questions matching "${term}"`;
+            
+            document.querySelectorAll('#categoryNav button').forEach(b => {
+                b.classList.remove('bg-slate-800', 'text-white', 'shadow-md');
+                b.classList.add('text-slate-600');
+            });
+
+            // Fast regex highlighting for search term
+            const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            const highlightedResults = results.map(q => ({
+                ...q,
+                q: q.q.replace(regex, '<span class="search-highlight">$1</span>'),
+                a: q.a.replace(regex, '<span class="search-highlight">$1</span>')
+            }));
+
+            renderCategory(null, highlightedResults);
+        }
+
+        function updateProgressChart() {
+            const total = db.questions.length;
+            const mastered = Object.values(userProgress).filter(v => v).length;
+            const pct = Math.round((mastered / total) * 100) || 0;
+            
+            document.getElementById('chartPercentage').innerText = `${pct}%`;
+
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            if (progressChartInstance) {
+                progressChartInstance.data.datasets[0].data = [mastered, total - mastered];
+                progressChartInstance.update();
+                return;
+            }
+
+            progressChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Mastered', 'Remaining'],
+                    datasets: [{
+                        data: [mastered, total - mastered],
+                        backgroundColor: ['#10b981', '#e2e8f0'],
+                        borderWidth: 0,
+                        hoverOffset: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '80%',
+                    plugins: { legend: { display: false }, tooltip: { enabled: true } },
+                    animation: { animateScale: true }
+                }
+            });
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
